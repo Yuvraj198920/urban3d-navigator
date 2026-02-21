@@ -9,7 +9,7 @@ import { useBuildingsData, useRoadsData } from '../hooks/useMapData';
 import { useMapStore } from '../store/mapStore';
 import { createBuildingSolidLayer, createBuildingWireframeLayer } from '../layers/buildingLayer';
 import { createRoadLayer } from '../layers/roadLayer';
-import { AWS_TERRAIN_TILES_URL, BASEMAP_STYLE_URL } from '../utils/constants';
+import { AWS_TERRAIN_TILES_URL, BASEMAP_STYLE_URL, INITIAL_VIEW_STATE } from '../utils/constants';
 import type { HoverInfo } from '../types';
 
 import Tooltip from './Tooltip';
@@ -66,10 +66,10 @@ export default function Map3D() {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <DeckGL
-        viewState={viewState}
+        initialViewState={INITIAL_VIEW_STATE}
         onViewStateChange={onViewStateChange}
         layers={layers}
-        controller={{ dragRotate: true, touchRotate: true }}
+        controller={{ dragRotate: true, touchRotate: true, pitchRange: [0, 85] }}
         onHover={(info: HoverInfo) => {
           if (info.object) {
             setHoverInfo(info);
