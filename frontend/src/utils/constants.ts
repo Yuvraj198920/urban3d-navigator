@@ -21,6 +21,9 @@ export const INITIAL_VIEW_STATE = {
 export const BASEMAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 // MapTiler key still used for terrain DEM tiles (Sprint 3 feature).
 export const TERRAIN_DEM_URL = `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${MAPTILER_API_KEY}`;
+// AWS Terrain Tiles — Terrarium encoding, free, no API key required.
+// Used for MapLibre GL terrain (raster-dem source) to render Alpine topography.
+export const AWS_TERRAIN_TILES_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
 
 // ─── Data Endpoints ──────────────────────────────────────────────────
 export const BUILDINGS_URL = `${DATA_BASE_URL}/buildings.geojson`;

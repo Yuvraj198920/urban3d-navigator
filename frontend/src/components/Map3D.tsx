@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
+import type { MapLibreEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { useViewState } from '../hooks/useViewState';
@@ -8,7 +9,7 @@ import { useBuildingsData, useRoadsData } from '../hooks/useMapData';
 import { useMapStore } from '../store/mapStore';
 import { createBuildingSolidLayer, createBuildingWireframeLayer } from '../layers/buildingLayer';
 import { createRoadLayer } from '../layers/roadLayer';
-import { BASEMAP_STYLE_URL } from '../utils/constants';
+import { AWS_TERRAIN_TILES_URL, BASEMAP_STYLE_URL } from '../utils/constants';
 import type { HoverInfo } from '../types';
 
 import Tooltip from './Tooltip';
@@ -43,6 +44,25 @@ export default function Map3D() {
 
   const isLoading = loadingBuildings || loadingRoads;
 
+  /**
+   * On map load, inject the AWS raster-DEM source and enable MapLibre terrain.
+   * Bolzano sits in an Alpine valley — terrain exaggeration makes this
+   * immediately readable as a real place, not a flat grid.
+   */
+  const handleMapLoad = useCallback((evt: MapLibreEvent) => {
+    const map = evt.target;
+    if (!map.getSource('terrain-dem')) {
+      map.addSource('terrain-dem', {
+        type: 'raster-dem',
+        tiles: [AWS_TERRAIN_TILES_URL],
+        tileSize: 256,
+        encoding: 'terrarium',
+        maxzoom: 15,
+      });
+    }
+    map.setTerrain({ source: 'terrain-dem', exaggeration: 1.2 });
+  }, []);
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <DeckGL
@@ -62,6 +82,7 @@ export default function Map3D() {
         <Map
           mapStyle={BASEMAP_STYLE_URL}
           attributionControl={true}
+          onLoad={handleMapLoad}
         />
       </DeckGL>
 
