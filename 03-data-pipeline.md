@@ -169,7 +169,7 @@ def fetch_overture_buildings(bbox: tuple) -> gpd.GeoDataFrame:
         height,
         names.primary as name,
         class as building_type
-    FROM read_parquet('s3://overturemaps-us-west-2/release/2024-11-13.0/theme=buildings/type=building/*')
+    FROM read_parquet('s3://overturemaps-us-west-2/release/{OVERTURE_RELEASE}/theme=buildings/type=building/*')
     WHERE bbox.xmin >= {west} 
       AND bbox.xmax <= {east}
       AND bbox.ymin >= {south}
@@ -220,6 +220,8 @@ def merge_osm_overture(osm_gdf: gpd.GeoDataFrame,
 **Output**: GeoDataFrame with guaranteed numeric `height` column
 
 ```python
+import pandas as pd
+
 def process_heights(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     Calculate final building heights using fallback hierarchy.
@@ -239,8 +241,9 @@ def process_heights(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     gdf['height'] = pd.to_numeric(gdf['height_osm'], errors='coerce')
     
     # Priority 2: Overture height (if available)
-    mask = gdf['height'].isna() & gdf['height_overture'].notna()
-    gdf.loc[mask, 'height'] = gdf.loc[mask, 'height_overture']
+    if 'height_overture' in gdf.columns:
+        mask = gdf['height'].isna() & gdf['height_overture'].notna()
+        gdf.loc[mask, 'height'] = gdf.loc[mask, 'height_overture']
     
     # Priority 3: Levels × 3m
     mask = gdf['height'].isna() & gdf['levels'].notna()
@@ -257,7 +260,7 @@ def process_heights(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     # to be visually honest about data gaps (solid default boxes hurt spatial cognition)
     gdf['height_source'] = 'default'
     mask_osm = pd.to_numeric(gdf['height_osm'], errors='coerce').notna()
-    mask_overture = gdf.get('height_overture', pd.Series(dtype=float)).notna()
+    mask_overture = gdf['height_overture'].notna() if 'height_overture' in gdf.columns else pd.Series(False, index=gdf.index)
     mask_levels = gdf['levels'].notna() & ~mask_osm
     gdf.loc[mask_osm, 'height_source'] = 'osm'
     gdf.loc[mask_overture & ~mask_osm, 'height_source'] = 'overture'
@@ -270,9 +273,9 @@ def process_heights(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 def add_color_by_height(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
-    Add RGB color based on height for visualization.
-    
-    Gradient: Low buildings (blue) → High buildings (red)
+    DEPRECATED — Frontend computes color via heightToColor() in buildingLayer.ts.
+    Keeping this function for Jupyter notebook exploration only.
+    Do NOT call in the production pipeline (baking RGB into GeoJSON bloats file size 15-20%).
     """
     from matplotlib import cm
     import numpy as np
@@ -291,13 +294,15 @@ def add_color_by_height(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 def validate_building_data(gdf: gpd.GeoDataFrame) -> dict:
     """
     Quality checks on processed building data.
+    Uses height_source column (available after process_heights).
     """
     checks = {
         'total_buildings': len(gdf),
-        'height_from_osm': (gdf['height_osm'].notna()).sum(),
-        'height_from_overture': (gdf['height_overture'].notna()).sum(),
-        'height_from_levels': (gdf['levels'].notna() & gdf['height_osm'].isna()).sum(),
-        'height_default': (gdf['height'] == 9.0).sum(),
+        'height_from_osm': (gdf['height_source'] == 'osm').sum(),
+        'height_from_overture': (gdf['height_source'] == 'overture').sum(),
+        'height_from_levels': (gdf['height_source'] == 'levels').sum(),
+        'height_default': (gdf['height_source'] == 'default').sum(),
+        'pct_known_height': f"{(1 - (gdf['height_source'] == 'default').mean()) * 100:.1f}%",
         'avg_height': gdf['height'].mean(),
         'max_height': gdf['height'].max(),
         'invalid_geometries': (~gdf.geometry.is_valid).sum()
@@ -523,13 +528,16 @@ def generate_metadata(city_name: str,
 
 from pathlib import Path
 from datetime import datetime
-import osmnx as ox
+import pandas as pd
+import osmnx as ox  # requires osmnx >= 1.9.0 (features_from_bbox API)
 import geopandas as gpd
 
 # Configuration
 OUTPUT_DIR = Path('data/processed')
 CITY = 'Bolzano, Italy'
 BBOX = (46.503, 46.495, 11.358, 11.345)  # Old town
+USE_OVERTURE = False  # Set True for cities with sparse OSM heights (e.g. Milan)
+OVERTURE_RELEASE = '2024-11-13.0'  # Pin Overture release — update when new release ships
 
 def run_pipeline(city: str, bbox: tuple, output_dir: Path):
     """
@@ -539,29 +547,37 @@ def run_pipeline(city: str, bbox: tuple, output_dir: Path):
     print(f"Bbox: {bbox}")
     
     # Stage 2: Fetch buildings
-    print("\n[1/6] Fetching OSM buildings...")
+    print("\n[1/7] Fetching OSM buildings...")
     buildings = fetch_osm_buildings(bbox)
     print(f"  Fetched {len(buildings)} buildings")
     
+    # Stage 3: Overture gap filling (optional)
+    if USE_OVERTURE:
+        print("\n[2/7] Fetching Overture buildings for height gap-filling...")
+        overture = fetch_overture_buildings(bbox)
+        buildings = merge_osm_overture(buildings, overture)
+        print(f"  Merged Overture heights for gaps")
+    else:
+        print("\n[2/7] Skipping Overture (USE_OVERTURE=False)")
+    
     # Stage 4: Process heights
-    print("\n[2/6] Processing building heights...")
+    print("\n[3/7] Processing building heights...")
     buildings = process_heights(buildings)
-    buildings = add_color_by_height(buildings)
     validate_building_data(buildings)
     
     # Stage 5: Fetch roads
-    print("\n[3/6] Fetching road network...")
+    print("\n[4/7] Fetching road network...")
     roads = fetch_road_network(bbox)
     roads = classify_roads(roads)
     print(f"  Fetched {len(roads)} road segments")
     
     # Stage 6: Clean geometries
-    print("\n[4/6] Cleaning geometries...")
+    print("\n[5/7] Cleaning geometries...")
     buildings = clean_geometries(buildings)
     roads = clean_geometries(roads)
     
     # Stage 7: Export
-    print("\n[5/6] Exporting GeoJSON files...")
+    print("\n[6/7] Exporting GeoJSON files...")
     city_slug = city.lower().replace(' ', '_').replace(',', '')
     city_dir = output_dir / city_slug
     
@@ -569,7 +585,7 @@ def run_pipeline(city: str, bbox: tuple, output_dir: Path):
     export_geojson(roads, city_dir / 'roads.geojson', 'roads')
     
     # Stage 8: Metadata
-    print("\n[6/6] Generating metadata...")
+    print("\n[7/7] Generating metadata...")
     generate_metadata(city, buildings, roads, city_dir / 'metadata.json')
     
     print(f"\n✅ Pipeline complete! Output: {city_dir}")
@@ -635,6 +651,6 @@ gdf['geometry'] = gdf.geometry.buffer(0).simplify(0.00001)
 
 **Next Document**: `04-frontend-implementation.md`
 
-**Document Version**: 1.0  
+**Document Version**: 1.2  
 **Last Updated**: February 21, 2026  
 **Owner**: Backend/Geospatial Engineer

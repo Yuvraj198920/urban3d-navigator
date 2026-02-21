@@ -55,8 +55,9 @@
 | **Build Tool** | Vite | Fast HMR, modern ESM support | Create React App (slower), Next.js (overkill for Phase 1) |
 | **3D Rendering** | deck.gl 9.x | GPU-accelerated WebGL, purpose-built for geospatial, excellent layer system | Three.js (too low-level), CesiumJS (heavy) |
 | **Base Map** | MapLibre GL JS | Open-source Mapbox alternative, vector tile support | Mapbox GL (paid tiers), Leaflet (no native WebGL) |
+| **Map React Binding** | react-map-gl 7.x | Official React wrapper for MapLibre/Mapbox, handles lifecycle | Raw MapLibre (manual mount/unmount headaches) |
 | **State Management** | Zustand | Lightweight, minimal boilerplate | Redux (overkill), Context API (performance issues) |
-| **Styling** | Tailwind CSS | Utility-first, fast prototyping | Styled-components (bundle size), plain CSS (maintenance) |
+| **Styling** | CSS Modules | Scoped by default, zero runtime, native Vite support | Tailwind (heavy for a map app with minimal UI), Styled-components (bundle size) |
 | **Data Fetching** | TanStack Query | Cache management, retry logic, React hooks | SWR (less features), plain fetch (manual caching) |
 
 ### Backend/Data Stack
@@ -65,7 +66,7 @@
 |-------|-----------|-----|-------|
 | **ETL Language** | Python 3.11+ | Geospatial ecosystem (GDAL, osmnx, geopandas) | Your native environment |
 | **Geo Processing** | GeoPandas + GDAL | Industry standard for vector operations | |
-| **OSM Data Fetch** | osmnx / Overpass API | Direct OSM access, building-aware queries | |
+| **OSM Data Fetch** | osmnx >= 1.9.0 / Overpass API | Direct OSM access, building-aware queries | Pin version — API changed across releases |
 | **Overture Access** | DuckDB + Parquet | Fast local queries on Overture cloud data | Alternative: AWS Athena |
 | **Data Format** | GeoJSON (tiled) | Universal browser support, human-readable | Alternative: MVT (more complex) |
 | **Tile Generation** | Tippecanoe (optional) | If we need MVT optimization later | |
@@ -80,6 +81,7 @@
 | **Python Env** | venv + pip | Standard, lightweight |
 | **Notebooks** | Jupyter Lab | Your workflow, data exploration |
 | **Linting** | ESLint + Prettier (JS), ruff (Python) | Code quality, consistency |
+| **Testing** | Vitest + Testing Library (JS), pytest (Python) | Fast, Vite-native test runner; snapshot + unit tests |
 | **CI/CD** | GitHub Actions | Free for public repos, easy setup |
 
 ---
@@ -262,6 +264,52 @@ Database (optional):
 
 ---
 
+## Environment Configuration
+
+Use `.env` files for environment-specific settings. Vite exposes `VITE_` prefixed variables to the frontend.
+
+### .env.example
+```bash
+# Map tile source
+VITE_MAPLIBRE_STYLE=https://basemaps.cartocdn.com/gl/positron-gl-style/style.json
+VITE_TERRAIN_SOURCE=https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png
+
+# Data source base URL (change for production CDN)
+VITE_DATA_BASE_URL=/data
+
+# Feature flags
+VITE_ENABLE_TERRAIN=true
+VITE_ENABLE_CINEMATIC_INTRO=true
+```
+
+### Pipeline config (Python)
+```python
+# config.py
+OVERTURE_RELEASE = '2024-11-13.0'   # Pin to tested release
+USE_OVERTURE = False                 # Enable for sparse-height cities
+DEFAULT_HEIGHT_M = 9.0              # Fallback building height
+FLOOR_HEIGHT_M = 3.0                # Meters per building:levels
+MAX_HEIGHT_M = 300.0                # Sanity cap
+MIN_HEIGHT_M = 2.0                  # Minimum building
+```
+
+---
+
+## Data Refresh Strategy
+
+OSM data changes continuously. Define when and how to re-run the ETL pipeline.
+
+| Trigger | Frequency | Action |
+|---------|-----------|--------|
+| **Scheduled re-run** | Monthly | Cron job / GitHub Action runs `pipeline.py` for all active cities |
+| **New city onboarding** | On demand | Manual `pipeline.py --city "Milan, Italy"` |
+| **Overture release** | ~Quarterly | Update `OVERTURE_RELEASE` constant, re-run affected cities |
+| **Data quality report** | After each run | Auto-generated, committed to `data/reports/` for audit trail |
+
+Pipeline outputs are **idempotent** — re-running overwrites previous GeoJSON with fresh data. Old versions live in git history.
+
+---
+
 ## Security & Privacy
 
 ### Data Privacy
@@ -320,6 +368,6 @@ Database (optional):
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.2  
 **Last Updated**: February 21, 2026  
 **Owner**: Technical Architect

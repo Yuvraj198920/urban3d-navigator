@@ -94,23 +94,41 @@ A **contextual 3D spatial awareness layer** that provides:
 - Deploy to production
 
 ### Phase 4: Extended Features (Future)
-- Offline mode
 - Route planning overlay
-- AR preview mode
+- AR preview mode (WebXR)
 - Multi-city coverage expansion
+- Time-of-day dynamic shadows
+- Custom dataset upload
+
+> **Note**: Offline mode (service worker caching) moved to Phase 2 Sprint 5 — too valuable to defer.
 
 ---
 
 ## Key Stakeholders
 
 ### Development Team
-- **Backend/Geospatial Engineer** - ETL pipeline, data processing, GDAL/OSM expertise
-- **Frontend Developer** - React/Next.js, deck.gl visualization, UI/UX
-- **Domain Expert** - GIS data validation, urban planning context
+- **Solo Developer (You)** - Full-stack: Python ETL, React/deck.gl frontend, DevOps
+  - Estimated capacity: 20-30 hrs/week
+  - Strengths: Geospatial (EURAC background), Python, data engineering
+  - Growth areas: deck.gl rendering, WebGL performance tuning
+- **Future hires (Phase 3+)**: Frontend specialist, part-time designer
 
 ### End Users
-- **Primary**: Urban explorers, tourists, expats in unfamiliar cities
-- **Secondary**: Urban planners, location-based service developers, researchers
+
+**Persona 1 — "The Expat Explorer"**
+- Recently moved to Bolzano/Milan, doesn't know the city layout
+- Opens tool before walking to a new area to build a mental map
+- Needs: quick load, intuitive orbit, recognizable landmark buildings
+
+**Persona 2 — "The Urban Planner"**
+- Works at EURAC or municipality, needs spatial context for reports
+- Wants to filter by building type, export screenshots, share URLs
+- Needs: semantic filtering, data accuracy indicators, stable URLs
+
+**Persona 3 — "The Tourist"**
+- 30 seconds of attention, wants a "wow" moment
+- Cinematic intro sells the tool; if the first 5 seconds are boring, they leave
+- Needs: zero onboarding, beautiful defaults, mobile-friendly
 
 ---
 
@@ -118,10 +136,13 @@ A **contextual 3D spatial awareness layer** that provides:
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Incomplete building height data | High | Medium | Fallback to building:levels × 3m heuristic; Use Overture Maps for gaps |
+| Incomplete building height data | High | Medium | Fallback hierarchy (OSM → Overture → levels × 3m → 9m default); render defaults as wireframe |
 | Performance issues with large datasets | Medium | High | Incremental loading, spatial indexing, LOD system |
+| GeoJSON breaks at Milan scale (200k+ buildings) | High | High | Design tile loader in Sprint 4 before writing Milan code |
+| Default-height buildings mislead users | Medium | Medium | Wireframe-only rendering for `height_source=default`; never solid fill |
 | Mobile browser WebGL limitations | Medium | Medium | Progressive enhancement, detect capabilities |
-| User adoption (niche use case) | Medium | Low | Start with research/personal use, expand organically |
+| Solo developer burnout | Medium | High | Realistic 20-30 hr/week cap, buffer weeks, strict sprint scope |
+| User adoption (niche use case) | Medium | Low | Start with research/personal use, EURAC research track opens institutional path |
 
 ---
 
@@ -136,13 +157,22 @@ A **contextual 3D spatial awareness layer** that provides:
 
 ## Next Steps
 
-1. Review and approve this overview
-2. Review technical architecture document
-3. Set up development environment
-4. Begin Phase 1 Sprint 1
+1. ~~Review and approve this overview~~ ✅
+2. ~~Review technical architecture document~~ ✅
+3. ~~Set up GitHub repository~~ ✅ ([urban3d-navigator](https://github.com/Yuvraj198920/urban3d-navigator))
+4. ~~Create Sprint 1 issues~~ ✅ (40 issues, 4 milestones, project board)
+5. [ ] Begin Sprint 1 Day 1 (Python venv + project structure)
+
+### Key Dates
+| Milestone | Target Date |
+|-----------|-------------|
+| M1: PoC Complete (Bolzano) | March 14, 2026 |
+| M2: MVP Launch (Milan) | April 11, 2026 |
+| M3: Beta Launch | May 30, 2026 |
+| M4: Public v1.0 | TBD |
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.2  
 **Last Updated**: February 21, 2026  
 **Owner**: Product/Technical Lead

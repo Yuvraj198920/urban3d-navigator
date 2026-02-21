@@ -64,6 +64,7 @@ urban3d-navigator/
     "@deck.gl/layers": "^9.0.0",
     "@deck.gl/geo-layers": "^9.0.0",
     "maplibre-gl": "^4.1.0",
+    "react-map-gl": "^7.1.0",
     "zustand": "^4.5.0",
     "@tanstack/react-query": "^5.28.0"
   },
@@ -73,6 +74,8 @@ urban3d-navigator/
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.4.2",
     "vite": "^5.2.0",
+    "vitest": "^1.4.0",
+    "@testing-library/react": "^14.2.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5"
   }
@@ -89,6 +92,7 @@ urban3d-navigator/
 // GeoJSON Feature types
 export interface BuildingProperties {
   height: number;
+  height_source: 'osm' | 'overture' | 'levels' | 'default';
   building_type: string;
   name?: string;
 }
@@ -311,56 +315,64 @@ export function useMapData(citySlug: string) {
 import { GeoJsonLayer } from '@deck.gl/layers';
 import type { BuildingFeature, BuildingFilters } from '../types';
 
-export function createBuildingLayer(
+export function createBuildingLayers(
   data: any,
   filters: BuildingFilters,
   onSelect: (building: any) => void
-) {
-  return new GeoJsonLayer({
-    id: 'buildings',
-    data,
-    
-    // Geometry
-    filled: true,
+): GeoJsonLayer[] {
+  // Split data: known-height buildings get solid fill, default-height get wireframe only
+  // This is visually honest — solid default boxes at 9m create a misleading uniform cityscape
+  const knownData = {
+    ...data,
+    features: data.features.filter(
+      (f: BuildingFeature) => f.properties.height_source !== 'default'
+    ),
+  };
+  const defaultData = {
+    ...data,
+    features: data.features.filter(
+      (f: BuildingFeature) => f.properties.height_source === 'default'
+    ),
+  };
+
+  const shared = {
     extruded: true,
-    wireframe: false,
-    
-    // Height extrusion
     getElevation: (d: BuildingFeature) => d.properties.height,
-    
-    // Styling
-    getFillColor: (d: BuildingFeature) => heightToColor(d.properties.height),
-    getLineColor: [60, 60, 60],
-    lineWidthMinPixels: 1,
-    
-    // Interaction
     pickable: true,
     autoHighlight: true,
-    highlightColor: [255, 200, 0, 200],
-    
-    // Click handler
-    onClick: (info) => {
-      if (info.object) {
-        onSelect(info.object);
-      }
-    },
-    
-    // Filtering (GPU-side for performance)
+    highlightColor: [255, 200, 0, 200] as [number, number, number, number],
+    onClick: (info: any) => { if (info.object) onSelect(info.object); },
     getFilterValue: (d: BuildingFeature) => [d.properties.height],
-    filterRange: [[filters.minHeight, filters.maxHeight]],
+    filterRange: [[filters.minHeight, filters.maxHeight]] as [number, number][],
     extensions: [],
-    
-    // Performance
-    updateTriggers: {
-      getFilterValue: [filters],
-    },
-  });
-}
+    updateTriggers: { getFilterValue: [filters] },
+  };
 
-// Render unknown-height buildings as wireframe outlines to be visually honest about data gaps
-// Solid default boxes (all at 9m) create a misleading uniform cityscape that hurts spatial cognition
-export function isDefaultHeight(feature: BuildingFeature): boolean {
-  return feature.properties.height_source === 'default';
+  return [
+    // Known-height buildings: solid fill with height-based color
+    new GeoJsonLayer({
+      id: 'buildings-known',
+      data: knownData,
+      filled: true,
+      wireframe: false,
+      getFillColor: (d: BuildingFeature) =>
+        heightToColor(d.properties.height, d.properties.height_source),
+      getLineColor: [60, 60, 60],
+      lineWidthMinPixels: 1,
+      ...shared,
+    }),
+    // Default-height buildings: wireframe only, near-transparent fill
+    new GeoJsonLayer({
+      id: 'buildings-default',
+      data: defaultData,
+      filled: true,
+      wireframe: true,
+      getFillColor: [120, 120, 120, 40],
+      getLineColor: [100, 100, 100, 160],
+      lineWidthMinPixels: 1,
+      ...shared,
+    }),
+  ];
 }
 
 // Height-based color gradient
@@ -450,8 +462,9 @@ import React, { useMemo } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import { useMapStore } from '../store/mapStore';
-import { createBuildingLayer } from '../layers/buildingLayer';
+import { createBuildingLayers } from '../layers/buildingLayer';
 import { createRoadLayer } from '../layers/roadLayer';
+import type { ViewState } from '../types';
 
 const MAPLIBRE_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 const TERRAIN_SOURCE = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
@@ -496,7 +509,7 @@ export function Map3D() {
 
     if (buildingsData && layerVisibility.buildings) {
       layerArray.push(
-        createBuildingLayer(buildingsData, buildingFilters, selectBuilding)
+        ...createBuildingLayers(buildingsData, buildingFilters, selectBuilding)
       );
     }
 
@@ -519,7 +532,8 @@ export function Map3D() {
             html: `
               <div style="padding: 8px; background: rgba(0,0,0,0.8); color: white; border-radius: 4px;">
                 <strong>${props.name || 'Building'}</strong><br/>
-                Height: ${props.height?.toFixed(1) || '?'}m<br/>
+                Height: ${props.height?.toFixed(1) || '?'}m
+                  (${props.height_source === 'default' ? 'estimated' : props.height_source || 'unknown'})<br/>
                 Type: ${props.building_type || 'Unknown'}
               </div>
             `,
@@ -538,7 +552,7 @@ export function Map3D() {
           // Add terrain DEM source — makes Bolzano valley + Alpine backdrop visible
           map.addSource('terrain-dem', {
             type: 'raster-dem',
-            url: TERRAIN_SOURCE,
+            tiles: [TERRAIN_SOURCE],
             tileSize: 256,
             encoding: 'terrarium',
           });
@@ -788,6 +802,6 @@ pnpm dev
 
 **Next Document**: `05-sprint-plan.md`
 
-**Document Version**: 1.0  
+**Document Version**: 1.2  
 **Last Updated**: February 21, 2026  
 **Owner**: Frontend Developer

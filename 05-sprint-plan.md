@@ -9,9 +9,11 @@
 #### Backend Tasks
 - [ ] **Day 1-2**: Environment setup
   - Create Python virtual environment
-  - Install dependencies: osmnx, geopandas, jupyter
-  - Set up project structure
+  - Install dependencies: `osmnx>=1.9.0`, geopandas, jupyter, pytest, ruff
+  - Set up project structure + `config.py` (centralize all constants: Overture release, default height, floor height, etc.)
+  - Create `.env.example` for frontend environment variables
   - Initialize Git repository
+  - Add `requirements.txt` with pinned versions
 
 - [ ] **Day 3-4**: Implement ETL pipeline
   - Code all pipeline stages (fetch, transform, export)
@@ -25,12 +27,14 @@
   - Enable MapLibre GL `terrain` with DEM tile URL
   - Validate: Bolzano valley + Alps visible in scene
 
-- [ ] **Day 5**: Data quality validation
+- [ ] **Day 5**: Data quality validation + tests
   - Visual inspection in QGIS
   - Check height distributions
   - Confirm buildings with `height_source=default` render as wireframe-only outlines (not solid)
   - Identify any geometry issues
   - Document data coverage stats
+  - Write pytest tests for `process_heights()` (all 4 fallback paths), `clean_geometries()`, `classify_roads()`
+  - Add test fixtures: small GeoDataFrame with known heights + nulls
 
 **Deliverables**:
 - ✅ Working Python ETL script
@@ -53,9 +57,11 @@
 #### Frontend Tasks
 - [ ] **Day 1**: Project setup + define the wow moment
   - Initialize Vite + React + TypeScript project
-  - Install deck.gl, MapLibre GL, dependencies
+  - Install deck.gl, MapLibre GL, react-map-gl, zustand, TanStack Query
+  - Install dev deps: vitest, @testing-library/react, eslint, prettier
   - Set up linting and formatting
   - Configure TypeScript strict mode
+  - Wire `.env` vars for map style URL, terrain URL, data base URL (see `02-tech-architecture.md` > Environment Configuration)
   - **Define cinematic intro**: on first load, auto-orbit camera smoothly around the city center for 5 seconds before handing control to user — this sells spatial value immediately
   - **Confirm color scheme**: test at least 2 palettes on paper before writing a line of render code
 
@@ -77,11 +83,13 @@
   - Handle loading states
   - Wire up metadata to viewport
 
-- [ ] **Day 5**: Basic controls
+- [ ] **Day 5**: Basic controls + first tests
   - Camera controls component
   - Layer visibility toggles
   - Reset view button
   - 2D/3D toggle
+  - Write Vitest tests: `heightToColor()` returns correct RGBA for known/default heights, layer factory returns correct number of layers
+  - Smoke-test: app renders without errors in dev mode
 
 **Deliverables**:
 - ✅ Running React app on localhost
@@ -150,11 +158,13 @@
 
 #### Tasks
 - [ ] Choose Milan test area (e.g., Brera district)
-- [ ] Run ETL pipeline for Milan district
-- [ ] Evaluate file sizes - tiling needed?
+- [ ] Run ETL pipeline for Milan district (`USE_OVERTURE=True` — Milan needs Overture gap-filling)
+- [ ] Evaluate file sizes — tiling needed?
 - [ ] If > 5MB: Implement spatial tiling (1km × 1km)
 - [ ] Test viewport-based tile loading
 - [ ] Benchmark load times
+- [ ] Add bilingual label support (`name:de` / `name:it` for Bolzano, `name:it` / `name:en` for Milan) — export both in GeoJSON properties, toggle in UI
+- [ ] Add water features for Milan (Navigli canals: `natural=water` + `waterway=canal`) — blue "negative space" layer
 
 **Target**: 10-20k buildings, <3s load time
 
@@ -200,8 +210,12 @@
 - [ ] Test on iOS Safari, Android Chrome
 - [ ] Set up Netlify/Vercel deployment
 - [ ] Configure CI/CD (GitHub Actions)
+  - Create `.github/workflows/ci.yml`: lint + typecheck + vitest on every push
+  - Create `.github/workflows/deploy.yml`: build + deploy to Netlify/Vercel on `main` push
+  - Create `.github/workflows/etl.yml`: scheduled monthly pipeline re-run (data refresh)
 - [ ] Deploy production build
 - [ ] Custom domain (optional)
+- [ ] Add OSM attribution footer (`© OpenStreetMap contributors`) + Overture credit if used
 
 **Deliverable**: Live URL with Milan district demo
 
@@ -281,33 +295,40 @@
 
 ## Phase 4: Extended Features (Future)
 
+> **Note**: Offline mode (service worker caching) was originally here but moved to Sprint 5 — too valuable to defer.
+
 ### Potential Features
-- **Route planning overlay**: Integrate with routing APIs
+- **Route planning overlay**: Integrate with routing APIs (OSRM or Valhalla)
 - **AR preview mode**: WebXR for in-situ viewing
-- **Time of day lighting**: Dynamic shadows
-- **Historical data**: Compare building heights over time
-- **Custom datasets**: Upload your own GeoJSON
-- **API for developers**: Embed 3D maps in other apps
+- **Time of day lighting**: Dynamic shadows (deck.gl `SunLight` + `AmbientLight`)
+- **Historical data**: Compare building heights over time (OSM history API)
+- **Custom datasets**: Upload your own GeoJSON for personal overlays
+- **API for developers**: Embed 3D maps in other apps (iframe + postMessage API)
+- **LoD2 upgrade**: Roof shape rendering when data becomes available
 
 ---
 
 ## Key Milestones
 
-| Milestone | Date | Deliverable |
-|-----------|------|-------------|
-| **M1: PoC Complete** | End of Week 3 | Bolzano demo working |
-| **M2: MVP Launch** | End of Week 7 | Milan district live on web |
-| **M3: Beta Launch** | End of Week 14 | Multi-city, user accounts |
+| Milestone | Target Date | Deliverable |
+|-----------|-------------|-------------|
+| **M1: PoC Complete** | March 14, 2026 | Bolzano demo working locally |
+| **M2: MVP Launch** | April 11, 2026 | Milan district live on web |
+| **M3: Beta Launch** | May 30, 2026 | Multi-city, user accounts, EURAC research track |
 | **M4: Public v1.0** | TBD | Full feature set, stable |
 
 ---
 
 ## Resource Requirements
 
-### Development Team (Ideal)
-- **1 Backend/Geospatial Engineer** (You) - 20-30 hrs/week
-- **1 Frontend Developer** - 20-30 hrs/week (Phase 2+)
-- **1 Designer** (Part-time) - 5-10 hrs/week (Phase 3)
+### Development Team (Reality)
+- **Solo Developer** (You) — 20-30 hrs/week through Phase 2
+  - Full-stack: Python ETL + React/deck.gl frontend + DevOps
+  - Leverage EURAC geospatial expertise as force multiplier
+
+### Future Hires (Phase 3+)
+- **Frontend Specialist** — 20-30 hrs/week (deck.gl performance, mobile UX)
+- **Designer** (Part-time) — 5-10 hrs/week (color palettes, icon design, landing page)
 
 ### Infrastructure Costs (Estimated)
 | Service | Phase 1-2 | Phase 3 | Phase 4 |
@@ -341,12 +362,23 @@
 
 ---
 
+## Definition of Ready (Story Level)
+
+A task is "ready" to work on when:
+- [ ] Acceptance criteria are written (what does "done" look like?)
+- [ ] Dependencies are identified (blocked by another task?)
+- [ ] Estimated effort: S (< 2hr), M (2-4hr), L (4-8hr), XL (break it down)
+- [ ] Data requirements identified (which GeoJSON fields? which API?)
+
+---
+
 ## Definition of Done (Sprint Level)
 
 Each sprint is "done" when:
 - [ ] All tasks completed or explicitly deferred
 - [ ] Code committed to main branch
-- [ ] Manual testing passed
+- [ ] All tests pass (pytest + vitest)
+- [ ] No lint errors (ruff + eslint)
 - [ ] Documentation updated
 - [ ] Demo-ready (can show to external person)
 - [ ] No critical bugs
@@ -375,12 +407,12 @@ Each sprint is "done" when:
 
 1. ✅ Review all planning documents
 2. ✅ Approve project scope and timeline
-3. [ ] Set up GitHub repository
-4. [ ] Create Sprint 1 issues
-5. [ ] Begin Day 1 tasks (environment setup)
+3. ✅ Set up GitHub repository ([urban3d-navigator](https://github.com/Yuvraj198920/urban3d-navigator))
+4. ✅ Create Sprint 1 issues (40 issues, 4 milestones, project board)
+5. [ ] Begin Sprint 1 Day 1 tasks (Python venv + project scaffold)
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.2  
 **Last Updated**: February 21, 2026  
 **Owner**: Project Manager / Technical Lead

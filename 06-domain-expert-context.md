@@ -363,12 +363,12 @@ How to verify your output is "correct":
 
 ### For Bolzano Specifically
 - **Arcades detection**: Buildings with `building:part=arcade` - visualize ground floor differently?
-- **Alpine context**: Terrain backdrop (Phase 4) - Bolzano is in a valley
-- **Bilingual labels**: Names in German/Italian (OSM has `name:de`, `name:it`)
+- **Alpine context**: ✅ Terrain DEM enabled in Sprint 1 (MapLibre GL `terrain` with AWS Terrarium tiles) — Bolzano valley + Alps now visible
+- **Bilingual labels**: Names in German/Italian (OSM has `name:de`, `name:it`) — ✅ Tracked in Sprint 4 task: export both names, toggle in UI
 
 ### For Milan Scale-Up
-- **Navigli canals**: Visualize water features as blue "negative space"
-- **Metro stations**: POI priority - major orientation landmarks
+- **Navigli canals**: Visualize water features as blue "negative space" — ✅ Tracked in Sprint 4 task: fetch `natural=water` + `waterway=canal`, add WaterLayer
+- **Metro stations**: POI priority - major orientation landmarks (→ Sprint 6 POI integration)
 - **Fashion district quadrilatero**: Dense, uniform heights - good test of visual clarity
 
 ---
@@ -383,6 +383,6 @@ How to verify your output is "correct":
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.2  
 **Last Updated**: February 21, 2026  
 **Owner**: Domain Expert / GIS Specialist
