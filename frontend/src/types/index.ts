@@ -82,6 +82,9 @@ export interface MapStoreState {
   showWireframe: boolean;
   toggleWireframe: () => void;
 
+  showLandmarks: boolean;
+  toggleLandmarks: () => void;
+
   selectedBuilding: GeoJsonFeature<BuildingProperties> | null;
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) => void;
 

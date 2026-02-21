@@ -10,6 +10,8 @@ export default function Controls() {
   const toggleRoads = useMapStore((s) => s.toggleRoads);
   const showWireframe = useMapStore((s) => s.showWireframe);
   const toggleWireframe = useMapStore((s) => s.toggleWireframe);
+  const showLandmarks = useMapStore((s) => s.showLandmarks);
+  const toggleLandmarks = useMapStore((s) => s.toggleLandmarks);
   const selectedBuilding = useMapStore((s) => s.selectedBuilding);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
   const { data: metadata } = useMetadata();
@@ -35,6 +37,11 @@ export default function Controls() {
       <label style={labelStyle}>
         <input type="checkbox" checked={showRoads} onChange={toggleRoads} />
         Roads
+      </label>
+
+      <label style={labelStyle}>
+        <input type="checkbox" checked={showLandmarks} onChange={toggleLandmarks} />
+        Landmarks
       </label>
 
       {metadata && (

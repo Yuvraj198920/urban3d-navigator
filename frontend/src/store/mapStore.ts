@@ -18,6 +18,9 @@ export const useMapStore = create<MapStoreState>((set) => ({
   showWireframe: false,
   toggleWireframe: () => set((s) => ({ showWireframe: !s.showWireframe })),
 
+  showLandmarks: true,
+  toggleLandmarks: () => set((s) => ({ showLandmarks: !s.showLandmarks })),
+
   // ── Selection / hover ───────────────────────────────────────────────
   selectedBuilding: null,
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) =>

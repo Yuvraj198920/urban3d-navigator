@@ -10,6 +10,7 @@ import { useBuildingsData, useRoadsData } from '../hooks/useMapData';
 import { useMapStore } from '../store/mapStore';
 import { createBuildingSolidLayer, createBuildingWireframeLayer } from '../layers/buildingLayer';
 import { createRoadLayer } from '../layers/roadLayer';
+import { createLandmarkLayer } from '../layers/landmarkLayer';
 import { AWS_TERRAIN_TILES_URL, BASEMAP_STYLE_URL, INITIAL_VIEW_STATE } from '../utils/constants';
 import type { HoverInfo } from '../types';
 
@@ -26,6 +27,7 @@ export default function Map3D() {
   const showBuildings = useMapStore((s) => s.showBuildings);
   const showRoads = useMapStore((s) => s.showRoads);
   const showWireframe = useMapStore((s) => s.showWireframe);
+  const showLandmarks = useMapStore((s) => s.showLandmarks);
   const setHoverInfo = useMapStore((s) => s.setHoverInfo);
   const hoverInfo = useMapStore((s) => s.hoverInfo);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
@@ -44,8 +46,11 @@ export default function Map3D() {
       const road = createRoadLayer(roads ?? null);
       if (road) result.push(road);
     }
+    if (showLandmarks) {
+      result.push(createLandmarkLayer());
+    }
     return result;
-  }, [buildings, roads, showBuildings, showRoads, showWireframe]);
+  }, [buildings, roads, showBuildings, showRoads, showWireframe, showLandmarks]);
 
   const isLoading = loadingBuildings || loadingRoads;
 
