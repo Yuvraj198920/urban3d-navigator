@@ -3,14 +3,16 @@ export const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY as string;
 export const DATA_BASE_URL = (import.meta.env.VITE_DATA_BASE_URL as string) ?? '/data/bolzano_italy';
 
 // ─── Map Defaults ────────────────────────────────────────────────────
-/** Bolzano, Italy – city centre */
+/** Bolzano, Italy – Alpine valley overview on load.
+ *  Zoom 11.5 reveals the surrounding Dolomites; pitch 65 + bearing 0
+ *  (facing north) makes the Alps rise dramatically behind the city. */
 export const INITIAL_VIEW_STATE = {
   longitude: 11.3548,
-  latitude: 46.4983,
-  zoom: 14.5,
-  pitch: 50,
-  bearing: -20,
-  minZoom: 10,
+  latitude: 46.47,
+  zoom: 11.5,
+  pitch: 65,
+  bearing: 0,
+  minZoom: 8,
   maxZoom: 20,
 } as const;
 
