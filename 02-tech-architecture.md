@@ -212,6 +212,7 @@
 | **Heavy CPU filtering** | GPU-side filtering | Use deck.gl's `filterRange` and shader-based filters |
 | **Memory pressure** | Tile eviction policy | LRU cache, unload tiles outside viewport + buffer |
 | **Slow initial load** | Progressive loading | Load buildings first, roads second, POIs third |
+| **GeoJSON limit (~50k features)** | Design tile system in Sprint 4 Week 1 | Milan has 200k+ buildings — architect the tile loader before writing Milan-scale code, not after hitting the wall |
 
 Reference: [deck.gl Performance Guide](https://deck.gl/docs/developer-guide/performance)[web:51]
 
@@ -233,6 +234,12 @@ Frontend: Netlify / Vercel
 
 Data: Cloudflare R2 / S3
 └── GeoJSON tiles served via CDN
+
+Offline Layer (Sprint 5 — moved up from Phase 4):
+├── Service Worker: cache visited GeoJSON tiles on first load
+├── Cache-Control headers: max-age=86400 on GeoJSON responses
+└── IndexedDB: persist metadata + tile index across sessions
+    (dramatically improves repeat-visit performance — do not defer this to Phase 4)
 ```
 
 ### Phase 3 (Production)

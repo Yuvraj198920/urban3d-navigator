@@ -357,8 +357,16 @@ export function createBuildingLayer(
   });
 }
 
+// Render unknown-height buildings as wireframe outlines to be visually honest about data gaps
+// Solid default boxes (all at 9m) create a misleading uniform cityscape that hurts spatial cognition
+export function isDefaultHeight(feature: BuildingFeature): boolean {
+  return feature.properties.height_source === 'default';
+}
+
 // Height-based color gradient
-function heightToColor(height: number): [number, number, number, number] {
+function heightToColor(height: number, heightSource: string): [number, number, number, number] {
+  // Unknown-height buildings: near-transparent fill, border visible in Controls
+  if (heightSource === 'default') return [120, 120, 120, 40];
   // Gradient: Blue (low) → Green (mid) → Red (high)
   const normalized = Math.min(height / 100, 1); // Normalize to 0-1 (100m = high)
   
@@ -446,6 +454,24 @@ import { createBuildingLayer } from '../layers/buildingLayer';
 import { createRoadLayer } from '../layers/roadLayer';
 
 const MAPLIBRE_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const TERRAIN_SOURCE = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+
+// Cinematic intro: slow orbit on first load, then hand control to user
+function useCinematicIntro(setViewState: (vs: Partial<ViewState>) => void) {
+  React.useEffect(() => {
+    let frame = 0;
+    const startBearing = 0;
+    const duration = 5000; // ms
+    const start = performance.now();
+    const animate = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      setViewState({ bearing: startBearing + t * 60, pitch: 20 + t * 25 });
+      if (t < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []); // runs once on mount
+}
 
 export function Map3D() {
   const {
@@ -457,6 +483,8 @@ export function Map3D() {
     buildingFilters,
     selectBuilding,
   } = useMapStore();
+
+  useCinematicIntro(setViewState);
 
   // Create layers
   const layers = useMemo(() => {
@@ -481,6 +509,9 @@ export function Map3D() {
       controller={true}
       onViewStateChange={({ viewState }) => setViewState(viewState)}
       layers={layers}
+      // Landmark height annotation — trust anchor for data quality
+      // Bolzano Cathedral: 65m spire, should appear visually as the tallest feature
+      // Rendered via a TextLayer added to the layers array in production
       getTooltip={({ object }) => {
         if (object?.properties) {
           const props = object.properties;
@@ -501,6 +532,17 @@ export function Map3D() {
         mapLib={import('maplibre-gl')}
         mapStyle={MAPLIBRE_STYLE}
         styleDiffing={false}
+        terrain={{ source: 'terrain-dem', exaggeration: 1.2 }}
+        onLoad={(e) => {
+          const map = e.target;
+          // Add terrain DEM source — makes Bolzano valley + Alpine backdrop visible
+          map.addSource('terrain-dem', {
+            type: 'raster-dem',
+            url: TERRAIN_SOURCE,
+            tileSize: 256,
+            encoding: 'terrarium',
+          });
+        }}
       />
     </DeckGL>
   );

@@ -252,6 +252,17 @@ def process_heights(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     # Sanity checks
     gdf['height'] = gdf['height'].clip(lower=2.0, upper=300.0)  # Min 2m, max 300m
     
+    # Track height source for frontend rendering decisions
+    # height_source=default buildings should render as wireframe-only outlines
+    # to be visually honest about data gaps (solid default boxes hurt spatial cognition)
+    gdf['height_source'] = 'default'
+    mask_osm = pd.to_numeric(gdf['height_osm'], errors='coerce').notna()
+    mask_overture = gdf.get('height_overture', pd.Series(dtype=float)).notna()
+    mask_levels = gdf['levels'].notna() & ~mask_osm
+    gdf.loc[mask_osm, 'height_source'] = 'osm'
+    gdf.loc[mask_overture & ~mask_osm, 'height_source'] = 'overture'
+    gdf.loc[mask_levels & ~mask_osm & ~mask_overture, 'height_source'] = 'levels'
+    
     # Drop intermediate columns
     gdf = gdf.drop(columns=['height_osm', 'height_overture', 'levels'], errors='ignore')
     
@@ -419,7 +430,7 @@ def export_geojson(gdf: gpd.GeoDataFrame,
     """
     # Select minimal columns
     if layer_name == 'buildings':
-        keep_cols = ['geometry', 'height', 'building_type', 'name']
+        keep_cols = ['geometry', 'height', 'height_source', 'building_type', 'name']
     elif layer_name == 'roads':
         keep_cols = ['geometry', 'highway', 'road_class', 'name', 'line_width']
     

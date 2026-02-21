@@ -18,10 +18,17 @@
   - Test on Bolzano old town bbox
   - Validate output GeoJSON files
   - Generate metadata.json
+  - Add `height_source` column to output (`osm` | `overture` | `levels` | `default`) so frontend can render unknown-height buildings differently
+
+- [ ] **Day 4** (parallel): Fetch terrain DEM for Bolzano
+  - Source: Mapzen Terrain Tiles or AWS Terrain Tiles (free)
+  - Enable MapLibre GL `terrain` with DEM tile URL
+  - Validate: Bolzano valley + Alps visible in scene
 
 - [ ] **Day 5**: Data quality validation
   - Visual inspection in QGIS
   - Check height distributions
+  - Confirm buildings with `height_source=default` render as wireframe-only outlines (not solid)
   - Identify any geometry issues
   - Document data coverage stats
 
@@ -44,17 +51,24 @@
 **Goal**: Display Bolzano in 3D with basic controls
 
 #### Frontend Tasks
-- [ ] **Day 1**: Project setup
+- [ ] **Day 1**: Project setup + define the wow moment
   - Initialize Vite + React + TypeScript project
   - Install deck.gl, MapLibre GL, dependencies
   - Set up linting and formatting
   - Configure TypeScript strict mode
+  - **Define cinematic intro**: on first load, auto-orbit camera smoothly around the city center for 5 seconds before handing control to user — this sells spatial value immediately
+  - **Confirm color scheme**: test at least 2 palettes on paper before writing a line of render code
 
 - [ ] **Day 2-3**: Core rendering
   - Implement Map3D component with deck.gl
   - Create building extrusion layer
+    - Buildings with `height_source=default`: render as wireframe outline only (not solid), visually honest about data gaps
+    - Buildings with known heights: solid fill with height-based color gradient
   - Create road network layer
   - Add base map (MapLibre)
+  - Enable MapLibre terrain DEM (Bolzano valley must be visible)
+  - Add cinematic intro camera sweep on first load
+  - Add landmark height label for Bolzano Cathedral (65m) as trust anchor
   - Copy GeoJSON files to public/data/
 
 - [ ] **Day 4**: State management & data loading
@@ -100,11 +114,13 @@
   - Adjust line widths and opacity
   - Test dark mode base map
 
-- [ ] **Day 4**: Performance testing
+- [ ] **Day 4**: Performance testing + user research
   - Measure render times
   - Profile layer updates
   - Test on different browsers
   - Document performance baselines
+  - **User research session**: watch 1 real person (colleague or Bolzano local) use the tool for 20 minutes without guidance — note every moment of confusion
+  - Document top 3 UX friction points for Sprint 4 backlog
 
 - [ ] **Day 5**: Documentation & demo prep
   - Write README.md
@@ -155,6 +171,8 @@
 - [ ] Search by building name
 - [ ] Filter UI component
 - [ ] GPU-side filtering optimization
+- [ ] **Reframe filters around user goals, not data attributes** — e.g. "Highlight tallest buildings", "Show only navigable streets", not raw sliders labelled with technical field names
+- [ ] Add service worker for offline caching of visited GeoJSON tiles (moved up from Phase 4 — dramatically improves repeat-visit load time)
 
 ---
 
@@ -246,10 +264,24 @@
 
 ---
 
+## Phase 3.5: EURAC Research Track (Parallel, Weeks 10-14)
+
+> **Strategic note**: These use cases have institutional buyers with budgets and leverage your existing EURAC expertise. Running this in parallel with Phase 3 consumer features opens a faster path to real-world funding and validation.
+
+### Research Use Cases to Prototype
+- [ ] **Urban heat island overlay** — building density + height correlation with temperature data
+- [ ] **Solar potential layer** — roof area estimation from LoD1 footprints (quick win with existing data)
+- [ ] **Flood risk visualization** — building height above ground level in low-lying areas
+- [ ] **Evacuation routing** — combine road network + building volumes for escape path planning
+- [ ] **Street canyon analysis** — building:height / street:width ratio (wind, shadow, air quality)
+- [ ] Produce a short research brief for EURAC colleagues showing tool capability
+- [ ] Identify 1 active EURAC project the tool could plug into directly
+
+---
+
 ## Phase 4: Extended Features (Future)
 
 ### Potential Features
-- **Offline mode**: Service worker + IndexedDB cache
 - **Route planning overlay**: Integrate with routing APIs
 - **AR preview mode**: WebXR for in-situ viewing
 - **Time of day lighting**: Dynamic shadows
@@ -294,9 +326,11 @@
 | Risk | Mitigation |
 |------|-----------|
 | **Performance degrades with large datasets** | Implement tiling early in Phase 2, benchmark continuously |
+| **GeoJSON breaks at Milan scale (200k+ buildings)** | Design tile loading system architecture in Sprint 4 Week 1, before writing any code — don't discover the problem mid-sprint |
 | **OSM data gaps in target cities** | Always test data quality before committing to a city |
 | **Mobile WebGL limitations** | Progressive enhancement, detect GPU capabilities |
 | **Browser compatibility issues** | Test on all major browsers weekly |
+| **Default-height buildings mislead users** | Always render `height_source=default` buildings as wireframe outlines, never solid fill |
 
 ### Project Risks
 | Risk | Mitigation |
