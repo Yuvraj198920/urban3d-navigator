@@ -15,6 +15,13 @@ import argparse
 import sys
 from pathlib import Path
 
+# Ensure the project root (parent of `pipeline/`) is on sys.path so that
+# `from pipeline.X import ...` resolves correctly whether run.py is invoked
+# directly (`python run.py`) or as a module (`python -m pipeline.run`).
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
 from pipeline.config import BBOX, CITY, OUTPUT_DIR, USE_OVERTURE
 from pipeline.stages.fetch_buildings import fetch_osm_buildings
 from pipeline.stages.fetch_overture import fetch_overture_buildings, merge_osm_overture

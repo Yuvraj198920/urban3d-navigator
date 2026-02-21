@@ -7,7 +7,7 @@ Downloads the road/path network from OSM and classifies into visual hierarchy.
 import osmnx as ox
 import geopandas as gpd
 
-from pipeline.config import OSM_TIMEOUT
+from ..config import OSM_TIMEOUT
 
 
 # Visual hierarchy mapping
