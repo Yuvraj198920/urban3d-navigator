@@ -17,7 +17,15 @@ def validate_building_data(gdf: gpd.GeoDataFrame) -> dict:
 
     Returns:
         Dictionary of quality metrics
+
+    Raises:
+        ValueError: If required columns are missing
     """
+    required_cols = {"height", "height_source"}
+    missing = required_cols - set(gdf.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
     total = len(gdf)
     source_counts = gdf["height_source"].value_counts()
 
