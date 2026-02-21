@@ -15,7 +15,11 @@ export const INITIAL_VIEW_STATE = {
 } as const;
 
 // ─── Tile URLs ───────────────────────────────────────────────────────
-export const BASEMAP_STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`;
+// OpenFreeMap: free, no API key, no domain restrictions — works on localhost.
+// MapTiler streets-v2 returns 403 on localhost due to key domain restrictions.
+// Switch back to MapTiler once the key's allowed referrers include localhost.
+export const BASEMAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+// MapTiler key still used for terrain DEM tiles (Sprint 3 feature).
 export const TERRAIN_DEM_URL = `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${MAPTILER_API_KEY}`;
 
 // ─── Data Endpoints ──────────────────────────────────────────────────
