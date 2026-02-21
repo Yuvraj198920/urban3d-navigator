@@ -119,8 +119,3 @@ const clearBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
   width: '100%',
 };
-  alignItems: 'center',
-  gap: 6,
-  marginBottom: 4,
-  cursor: 'pointer',
-};
