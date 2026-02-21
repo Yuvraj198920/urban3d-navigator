@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import DeckGL from '@deck.gl/react';
+import { FlyToInterpolator } from 'deck.gl';
+import type { PickingInfo } from 'deck.gl';
 import { Map } from 'react-map-gl/maplibre';
 import type { MapLibreEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { useViewState } from '../hooks/useViewState';
 import { useBuildingsData, useRoadsData } from '../hooks/useMapData';
 import { useMapStore } from '../store/mapStore';
 import { createBuildingSolidLayer, createBuildingWireframeLayer } from '../layers/buildingLayer';
@@ -15,7 +16,10 @@ import type { HoverInfo } from '../types';
 import Tooltip from './Tooltip';
 
 export default function Map3D() {
-  const { viewState, onViewStateChange } = useViewState();
+  // flyTarget drives camera transitions — updating it with a FlyToInterpolator
+  // triggers deck.gl to animate from the current internal viewport to the target.
+  const [flyTarget, setFlyTarget] = useState<object>({ ...INITIAL_VIEW_STATE });
+
   const { data: buildings, isLoading: loadingBuildings } = useBuildingsData();
   const { data: roads, isLoading: loadingRoads } = useRoadsData();
 
@@ -24,6 +28,7 @@ export default function Map3D() {
   const showWireframe = useMapStore((s) => s.showWireframe);
   const setHoverInfo = useMapStore((s) => s.setHoverInfo);
   const hoverInfo = useMapStore((s) => s.hoverInfo);
+  const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
 
   const layers = useMemo(() => {
     const result = [];
@@ -43,6 +48,28 @@ export default function Map3D() {
   }, [buildings, roads, showBuildings, showRoads, showWireframe]);
 
   const isLoading = loadingBuildings || loadingRoads;
+
+  /** Fly to a clicked building and mark it selected. Clicking empty space clears. */
+  const handleClick = useCallback(
+    (info: PickingInfo) => {
+      if (!info.object || !info.coordinate) {
+        setSelectedBuilding(null);
+        return;
+      }
+      const [longitude, latitude] = info.coordinate as [number, number];
+      setSelectedBuilding(info.object);
+      setFlyTarget({
+        longitude,
+        latitude,
+        zoom: 16.5,
+        pitch: 60,
+        bearing: 0,
+        transitionInterpolator: new FlyToInterpolator({ speed: 1.5 }),
+        transitionDuration: 'auto',
+      });
+    },
+    [setSelectedBuilding],
+  );
 
   /**
    * On map load, inject the AWS raster-DEM source and enable MapLibre terrain.
@@ -66,10 +93,10 @@ export default function Map3D() {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
-        onViewStateChange={onViewStateChange}
+        initialViewState={flyTarget}
         layers={layers}
         controller={{ dragRotate: true, touchRotate: true, pitchRange: [0, 85] }}
+        onClick={handleClick}
         onHover={(info: HoverInfo) => {
           if (info.object) {
             setHoverInfo(info);
