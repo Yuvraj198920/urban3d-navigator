@@ -4,6 +4,7 @@ import Controls from './components/Controls';
 import HeightLegend from './components/HeightLegend';
 import TypeLegend from './components/TypeLegend';
 import PerfOverlay from './components/PerfOverlay';
+import Attribution from './components/Attribution';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +23,7 @@ export default function App() {
         <HeightLegend />
         <TypeLegend />
         <PerfOverlay />
+        <Attribution />
       </div>
     </QueryClientProvider>
   );
