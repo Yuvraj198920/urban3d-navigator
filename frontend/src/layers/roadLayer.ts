@@ -23,9 +23,9 @@ export function createRoadLayer(
     lineWidthMinPixels: 1,
     lineCapRounded: true,
     lineJointRounded: true,
-    pickable: true,
-    autoHighlight: true,
-    highlightColor: [255, 255, 0, 100],
+    // pickable: false keeps road features off the GPU pick buffer — a meaningful
+    // win with 14,256 line features.  Road class is visible via the colour alone.
+    pickable: false,
   });
 }
 

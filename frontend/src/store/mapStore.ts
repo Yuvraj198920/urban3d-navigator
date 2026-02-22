@@ -29,6 +29,10 @@ export const useMapStore = create<MapStoreState>((set) => ({
   colourMode: 'height' as const,
   setColourMode: (mode: 'height' | 'type') => set({ colourMode: mode }),
 
+  // ── Performance overlay ──────────────────────────────────────────────
+  showPerfOverlay: false,
+  togglePerfOverlay: () => set((s) => ({ showPerfOverlay: !s.showPerfOverlay })),
+
   // ── Selection / hover ───────────────────────────────────────────────
   selectedBuilding: null,
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) =>
