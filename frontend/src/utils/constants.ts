@@ -45,6 +45,78 @@ export const HEIGHT_COLOR_SCALE: [number, [number, number, number, number]][] = 
   [300, [189, 0, 38, 220]],
 ];
 
+// ─── Building Type → Color Map ───────────────────────────────────────
+/** Semantic colours keyed by OSM building_type tag value. */
+export const BUILDING_TYPE_COLORS: Record<string, [number, number, number, number]> = {
+  // Residential — warm amber
+  apartments:         [255, 160,  64, 220],
+  residential:        [255, 160,  64, 220],
+  house:              [255, 160,  64, 220],
+  detached:           [255, 160,  64, 220],
+  semidetached_house: [255, 160,  64, 220],
+  dormitory:          [255, 160,  64, 220],
+  villa:              [255, 160,  64, 220],
+  // Commercial — vivid orange
+  commercial:         [255, 107,  30, 220],
+  retail:             [255, 107,  30, 220],
+  supermarket:        [255, 107,  30, 220],
+  hotel:              [255, 107,  30, 220],
+  bank:               [255, 107,  30, 220],
+  kiosk:              [255, 107,  30, 220],
+  // Office — steel blue
+  office:             [ 65, 120, 220, 220],
+  // Industrial / utility — slate grey
+  industrial:         [120, 120, 130, 220],
+  warehouse:          [120, 120, 130, 220],
+  shed:               [120, 120, 130, 220],
+  garage:             [120, 120, 130, 220],
+  garages:            [120, 120, 130, 220],
+  service:            [120, 120, 130, 220],
+  // Public / civic — teal
+  school:             [ 32, 178, 170, 220],
+  university:         [ 32, 178, 170, 220],
+  hospital:           [ 32, 178, 170, 220],
+  civic:              [ 32, 178, 170, 220],
+  public:             [ 32, 178, 170, 220],
+  government:         [ 32, 178, 170, 220],
+  fire_station:       [ 32, 178, 170, 220],
+  sports_centre:      [ 32, 178, 170, 220],
+  kindergarten:       [ 32, 178, 170, 220],
+  train_station:      [ 32, 178, 170, 220],
+  transportation:     [ 32, 178, 170, 220],
+  parking:            [ 32, 178, 170, 220],
+  grandstand:         [ 32, 178, 170, 220],
+  bleachers:          [ 32, 178, 170, 220],
+  // Religious — gold
+  church:             [255, 200,   0, 220],
+  chapel:             [255, 200,   0, 220],
+  cathedral:          [255, 200,   0, 220],
+  convent:            [255, 200,   0, 220],
+  // Agricultural — muted green
+  farm:               [100, 180,  80, 220],
+  farm_auxiliary:     [100, 180,  80, 220],
+  greenhouse:         [100, 180,  80, 220],
+  glasshouse:         [100, 180,  80, 220],
+};
+
+/** Fallback colour for "yes", null, or unrecognised types. */
+export const BUILDING_TYPE_DEFAULT_COLOR: [number, number, number, number] = [150, 160, 170, 220];
+
+/** Category rows shown in the type legend, in display order. */
+export const BUILDING_TYPE_CATEGORIES: {
+  label: string;
+  color: [number, number, number, number];
+}[] = [
+  { label: 'Residential',  color: [255, 160,  64, 220] },
+  { label: 'Commercial',   color: [255, 107,  30, 220] },
+  { label: 'Office',       color: [ 65, 120, 220, 220] },
+  { label: 'Industrial',   color: [120, 120, 130, 220] },
+  { label: 'Public/Civic', color: [ 32, 178, 170, 220] },
+  { label: 'Religious',    color: [255, 200,   0, 220] },
+  { label: 'Agricultural', color: [100, 180,  80, 220] },
+  { label: 'Other',        color: [150, 160, 170, 220] },
+];
+
 // ─── Road widths by classification ───────────────────────────────────
 export const ROAD_WIDTH_SCALE: Record<string, number> = {
   motorway: 6,

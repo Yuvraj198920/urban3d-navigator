@@ -1,6 +1,11 @@
 import { GeoJsonLayer } from '@deck.gl/layers';
 import type { GeoJsonFeatureCollection, BuildingProperties } from '../types';
-import { LAYER_IDS, HEIGHT_COLOR_SCALE } from '../utils/constants';
+import {
+  LAYER_IDS,
+  HEIGHT_COLOR_SCALE,
+  BUILDING_TYPE_COLORS,
+  BUILDING_TYPE_DEFAULT_COLOR,
+} from '../utils/constants';
 
 /**
  * Map a building height to an RGBA colour using the HEIGHT_COLOR_SCALE.
@@ -30,6 +35,17 @@ export function heightToColor(
 }
 
 /**
+ * Maps a building's OSM type tag to a semantic RGBA colour.
+ * Types not listed in BUILDING_TYPE_COLORS fall back to a neutral grey.
+ */
+export function typeToColor(
+  buildingType: string | null,
+): [number, number, number, number] {
+  if (!buildingType) return BUILDING_TYPE_DEFAULT_COLOR;
+  return BUILDING_TYPE_COLORS[buildingType] ?? BUILDING_TYPE_DEFAULT_COLOR;
+}
+
+/**
  * Filters a feature collection to buildings within [minH, maxH] metres.
  * Pre-filtering on the JS side avoids shader complexity for our ~600 feature dataset.
  */
@@ -49,11 +65,13 @@ function filterByHeight(
 }
 
 /**
- * Solid extruded building layer – height-coloured 3D blocks.
+ * Solid extruded building layer – coloured either by height gradient or
+ * by semantic building type depending on `colourMode`.
  */
 export function createBuildingSolidLayer(
   data: GeoJsonFeatureCollection<BuildingProperties> | null,
   heightRange: [number, number] = [0, 300],
+  colourMode: 'height' | 'type' = 'height',
 ) {
   if (!data) return null;
   const filtered = filterByHeight(data, heightRange);
@@ -66,7 +84,9 @@ export function createBuildingSolidLayer(
     wireframe: false,
     getElevation: (f: { properties: BuildingProperties }) => f.properties.height,
     getFillColor: (f: { properties: BuildingProperties }) =>
-      heightToColor(f.properties.height, HEIGHT_COLOR_SCALE),
+      colourMode === 'type'
+        ? typeToColor(f.properties.building_type)
+        : heightToColor(f.properties.height, HEIGHT_COLOR_SCALE),
     getLineColor: [80, 80, 80, 100],
     pickable: true,
     autoHighlight: true,
@@ -78,7 +98,7 @@ export function createBuildingSolidLayer(
       specularColor: [200, 200, 200],
     },
     updateTriggers: {
-      getFillColor: [HEIGHT_COLOR_SCALE],
+      getFillColor: [colourMode, HEIGHT_COLOR_SCALE],
       data: [heightRange],
     },
   });

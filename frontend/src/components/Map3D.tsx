@@ -27,6 +27,7 @@ export default function Map3D() {
   const showWireframe = useMapStore((s) => s.showWireframe);
   const showLandmarks = useMapStore((s) => s.showLandmarks);
   const heightRange = useMapStore((s) => s.heightRange);
+  const colourMode = useMapStore((s) => s.colourMode);
   const setHoverInfo = useMapStore((s) => s.setHoverInfo);
   const hoverInfo = useMapStore((s) => s.hoverInfo);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
@@ -34,7 +35,7 @@ export default function Map3D() {
   const layers = useMemo(() => {
     const result = [];
     if (showBuildings) {
-      const solid = createBuildingSolidLayer(buildings ?? null, heightRange);
+      const solid = createBuildingSolidLayer(buildings ?? null, heightRange, colourMode);
       if (solid) result.push(solid);
     }
     if (showWireframe) {
@@ -49,7 +50,7 @@ export default function Map3D() {
       result.push(createLandmarkLayer());
     }
     return result;
-  }, [buildings, roads, showBuildings, showRoads, showWireframe, showLandmarks, heightRange]);
+  }, [buildings, roads, showBuildings, showRoads, showWireframe, showLandmarks, heightRange, colourMode]);
 
   const isLoading = loadingBuildings || loadingRoads;
 
