@@ -1,16 +1,27 @@
 import type React from 'react';
 import { HEIGHT_COLOR_SCALE } from '../utils/constants';
+import { useMetadata } from '../hooks/useMapData';
+import { heightToColor } from '../layers/buildingLayer';
 
 /**
  * Vertical colour-scale legend explaining height → colour mapping.
- * Renders a gradient bar built from the HEIGHT_COLOR_SCALE breakpoints
- * with labelled tick marks at each stop.
+ * When building data is available the legend clips to the actual max
+ * height so every colour band shown corresponds to a real building.
  */
 export default function HeightLegend() {
-  // Build CSS gradient stops from the colour scale
-  const totalRange = HEIGHT_COLOR_SCALE[HEIGHT_COLOR_SCALE.length - 1][0];
-  const gradientStops = HEIGHT_COLOR_SCALE.map(([h, [r, g, b, a]]) => {
-    const pct = ((h / totalRange) * 100).toFixed(1);
+  const { data: metadata } = useMetadata();
+  const actualMax = metadata?.stats.max_building_height ?? HEIGHT_COLOR_SCALE[HEIGHT_COLOR_SCALE.length - 1][0];
+
+  // Keep only scale breakpoints at or below actualMax, then append actualMax itself
+  const clipped = HEIGHT_COLOR_SCALE.filter(([h]) => h <= actualMax);
+  // Add the actual max as the top stop if it isn't already a breakpoint
+  if (clipped[clipped.length - 1][0] < actualMax) {
+    clipped.push([actualMax, heightToColor(actualMax, HEIGHT_COLOR_SCALE)]);
+  }
+
+  // Build CSS gradient stops relative to the clipped range
+  const gradientStops = clipped.map(([h, [r, g, b, a]]) => {
+    const pct = ((h / actualMax) * 100).toFixed(1);
     return `rgba(${r},${g},${b},${(a / 255).toFixed(2)}) ${pct}%`;
   }).join(', ');
 
@@ -18,12 +29,10 @@ export default function HeightLegend() {
     <div style={wrapperStyle}>
       <div style={titleStyle}>Height (m)</div>
       <div style={rowStyle}>
-        {/* Gradient bar */}
         <div style={{ ...barStyle, background: `linear-gradient(to top, ${gradientStops})` }} />
-        {/* Tick labels */}
         <div style={ticksStyle}>
-          {[...HEIGHT_COLOR_SCALE].reverse().map(([h]) => (
-            <div key={h} style={tickStyle}>{h}</div>
+          {[...clipped].reverse().map(([h]) => (
+            <div key={h} style={tickStyle}>{Math.round(h)}</div>
           ))}
         </div>
       </div>
