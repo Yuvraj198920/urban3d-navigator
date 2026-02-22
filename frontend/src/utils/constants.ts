@@ -118,15 +118,12 @@ export const BUILDING_TYPE_CATEGORIES: {
 ];
 
 // ─── Road widths by classification ───────────────────────────────────
+// Keys match the ETL pipeline road_class field: major | minor | other | path
 export const ROAD_WIDTH_SCALE: Record<string, number> = {
-  motorway: 6,
-  trunk: 5,
-  primary: 4,
-  secondary: 3,
-  tertiary: 2,
-  residential: 1.5,
-  service: 1,
-  other: 0.8,
+  major: 6,
+  minor: 3,
+  other: 1.5,
+  path: 1,
 };
 
 // ─── Layer IDs ───────────────────────────────────────────────────────

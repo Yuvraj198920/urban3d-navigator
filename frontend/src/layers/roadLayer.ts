@@ -31,23 +31,18 @@ export function createRoadLayer(
 
 /**
  * Map road classification to an RGBA colour.
+ * Classes come from the ETL pipeline: major | minor | other | path
  */
 function roadClassToColor(roadClass: string): [number, number, number, number] {
   switch (roadClass) {
-    case 'motorway':
-      return [230, 100, 100, 200];
-    case 'trunk':
+    case 'major':
+      return [230, 100, 100, 220];
+    case 'minor':
       return [230, 150, 80, 200];
-    case 'primary':
-      return [240, 200, 80, 200];
-    case 'secondary':
-      return [180, 210, 100, 200];
-    case 'tertiary':
-      return [140, 180, 140, 200];
-    case 'residential':
-      return [160, 170, 200, 180];
-    case 'service':
-      return [180, 180, 180, 150];
+    case 'other':
+      return [180, 210, 100, 180];
+    case 'path':
+      return [140, 180, 140, 160];
     default:
       return [150, 150, 150, 120];
   }
