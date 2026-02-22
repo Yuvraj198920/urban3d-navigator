@@ -80,7 +80,7 @@ export interface PipelineMetadata {
 export interface HoverInfo {
   x: number;
   y: number;
-  object?: GeoJsonFeature<BuildingProperties | RoadProperties>;
+  object?: GeoJsonFeature<BuildingProperties | RoadProperties | PoiProperties>;
   layer?: { id: string };
 }
 
