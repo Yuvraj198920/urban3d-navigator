@@ -30,16 +30,35 @@ export function heightToColor(
 }
 
 /**
+ * Filters a feature collection to buildings within [minH, maxH] metres.
+ * Pre-filtering on the JS side avoids shader complexity for our ~600 feature dataset.
+ */
+function filterByHeight(
+  data: GeoJsonFeatureCollection<BuildingProperties>,
+  [minH, maxH]: [number, number],
+): GeoJsonFeatureCollection<BuildingProperties> {
+  if (minH === 0 && maxH === 300) return data; // fast-path: no filter
+  return {
+    ...data,
+    features: data.features.filter(
+      (f) => f.properties.height >= minH && f.properties.height <= maxH,
+    ),
+  };
+}
+
+/**
  * Solid extruded building layer – height-coloured 3D blocks.
  */
 export function createBuildingSolidLayer(
   data: GeoJsonFeatureCollection<BuildingProperties> | null,
+  heightRange: [number, number] = [0, 300],
 ) {
   if (!data) return null;
+  const filtered = filterByHeight(data, heightRange);
 
   return new GeoJsonLayer({
     id: LAYER_IDS.BUILDINGS_SOLID,
-    data: data as unknown as GeoJsonLayer['props']['data'],
+    data: filtered as unknown as GeoJsonLayer['props']['data'],
     extruded: true,
     filled: true,
     wireframe: false,
@@ -58,6 +77,7 @@ export function createBuildingSolidLayer(
     },
     updateTriggers: {
       getFillColor: [HEIGHT_COLOR_SCALE],
+      data: [heightRange],
     },
   });
 }
@@ -67,12 +87,14 @@ export function createBuildingSolidLayer(
  */
 export function createBuildingWireframeLayer(
   data: GeoJsonFeatureCollection<BuildingProperties> | null,
+  heightRange: [number, number] = [0, 300],
 ) {
   if (!data) return null;
+  const filtered = filterByHeight(data, heightRange);
 
   return new GeoJsonLayer({
     id: LAYER_IDS.BUILDINGS_WIREFRAME,
-    data: data as unknown as GeoJsonLayer['props']['data'],
+    data: filtered as unknown as GeoJsonLayer['props']['data'],
     extruded: true,
     filled: false,
     wireframe: true,
@@ -80,5 +102,8 @@ export function createBuildingWireframeLayer(
     getLineColor: [60, 60, 60, 180],
     lineWidthMinPixels: 1,
     pickable: false,
+    updateTriggers: {
+      data: [heightRange],
+    },
   });
 }
