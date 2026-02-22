@@ -95,6 +95,10 @@ export interface MapStoreState {
   heightRange: [number, number];
   setHeightRange: (range: [number, number]) => void;
 
+  /** Whether buildings are coloured by height gradient or by semantic type */
+  colourMode: 'height' | 'type';
+  setColourMode: (mode: 'height' | 'type') => void;
+
   selectedBuilding: GeoJsonFeature<BuildingProperties> | null;
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) => void;
 

@@ -1,6 +1,7 @@
 import type React from 'react';
 import { HEIGHT_COLOR_SCALE } from '../utils/constants';
 import { useMetadata } from '../hooks/useMapData';
+import { useMapStore } from '../store/mapStore';
 import { heightToColor } from '../layers/buildingLayer';
 
 /**
@@ -9,7 +10,12 @@ import { heightToColor } from '../layers/buildingLayer';
  * height so every colour band shown corresponds to a real building.
  */
 export default function HeightLegend() {
+  const colourMode = useMapStore((s) => s.colourMode);
   const { data: metadata } = useMetadata();
+
+  // Hide when user switched to building-type colour mode
+  if (colourMode !== 'height') return null;
+
   const actualMax = metadata?.stats.max_building_height ?? HEIGHT_COLOR_SCALE[HEIGHT_COLOR_SCALE.length - 1][0];
 
   // Keep only scale breakpoints at or below actualMax, then append actualMax itself

@@ -25,6 +25,10 @@ export const useMapStore = create<MapStoreState>((set) => ({
   heightRange: [0, 300],
   setHeightRange: (range: [number, number]) => set({ heightRange: range }),
 
+  // ── Colour mode ─────────────────────────────────────────────────────
+  colourMode: 'height' as const,
+  setColourMode: (mode: 'height' | 'type') => set({ colourMode: mode }),
+
   // ── Selection / hover ───────────────────────────────────────────────
   selectedBuilding: null,
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) =>

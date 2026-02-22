@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Map3D from './components/Map3D';
 import Controls from './components/Controls';
 import HeightLegend from './components/HeightLegend';
+import TypeLegend from './components/TypeLegend';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +19,7 @@ export default function App() {
         <Map3D />
         <Controls />
         <HeightLegend />
+        <TypeLegend />
       </div>
     </QueryClientProvider>
   );

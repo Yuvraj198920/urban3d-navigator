@@ -14,6 +14,8 @@ export default function Controls() {
   const toggleLandmarks = useMapStore((s) => s.toggleLandmarks);
   const selectedBuilding = useMapStore((s) => s.selectedBuilding);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
+  const colourMode = useMapStore((s) => s.colourMode);
+  const setColourMode = useMapStore((s) => s.setColourMode);
   const { data: metadata } = useMetadata();
 
   const bp = selectedBuilding?.properties as BuildingProperties | undefined;
@@ -43,6 +45,28 @@ export default function Controls() {
         <input type="checkbox" checked={showLandmarks} onChange={toggleLandmarks} />
         Landmarks
       </label>
+
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>Colour by</div>
+        <label style={radioLabelStyle}>
+          <input
+            type="radio"
+            name="colourMode"
+            checked={colourMode === 'height'}
+            onChange={() => setColourMode('height')}
+          />
+          Height
+        </label>
+        <label style={radioLabelStyle}>
+          <input
+            type="radio"
+            name="colourMode"
+            checked={colourMode === 'type'}
+            onChange={() => setColourMode('type')}
+          />
+          Building type
+        </label>
+      </div>
 
       {metadata && (
         <div style={{ marginTop: 12, fontSize: 11, opacity: 0.8, lineHeight: 1.6 }}>
@@ -118,4 +142,28 @@ const clearBtnStyle: React.CSSProperties = {
   background: 'transparent',
   cursor: 'pointer',
   width: '100%',
+};
+
+const sectionStyle: React.CSSProperties = {
+  marginTop: 10,
+  paddingTop: 8,
+  borderTop: '1px solid rgba(0,0,0,0.08)',
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  opacity: 0.5,
+  marginBottom: 4,
+};
+
+const radioLabelStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 5,
+  marginBottom: 3,
+  cursor: 'pointer',
+  fontSize: 12,
 };
