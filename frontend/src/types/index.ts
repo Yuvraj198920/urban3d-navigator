@@ -52,12 +52,18 @@ export interface ViewState {
 export interface PipelineMetadata {
   city: string;
   generated_at: string;
-  building_count: number;
-  road_count: number;
-  bbox: [number, number, number, number];
-  height_source_breakdown: Record<HeightSource, number>;
-  pct_known_height: number;
-  crs: string;
+  bounds: { west: number; south: number; east: number; north: number };
+  center: { lon: number; lat: number };
+  stats: {
+    buildings_count: number;
+    roads_count: number;
+    avg_building_height: number;
+    max_building_height: number;
+    height_sources: Record<string, number>;
+    pct_known_height: number;
+  };
+  data_sources: Record<string, string>;
+  files: Record<string, string>;
 }
 
 // ─── Tooltip / Hover Info ────────────────────────────────────────────

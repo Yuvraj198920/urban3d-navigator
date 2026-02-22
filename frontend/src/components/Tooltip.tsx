@@ -42,7 +42,7 @@ function BuildingTooltip({ props }: { props: BuildingProperties }) {
   return (
     <>
       {props.name && <div><strong>{props.name}</strong></div>}
-      <div>Height: {props.height.toFixed(1)} m</div>
+      {props.height != null && <div>Height: {props.height.toFixed(1)} m</div>}
       <div>Source: {props.height_source}</div>
       {props.building_type && <div>Type: {props.building_type}</div>}
     </>
@@ -54,7 +54,7 @@ function RoadTooltip({ props }: { props: RoadProperties }) {
     <>
       {props.name && <div><strong>{props.name}</strong></div>}
       <div>Class: {props.road_class}</div>
-      <div>Width: {props.width.toFixed(1)} m</div>
+      {props.width != null && <div>Width: {props.width.toFixed(1)} m</div>}
     </>
   );
 }

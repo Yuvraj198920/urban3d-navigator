@@ -47,37 +47,39 @@ export default function Controls() {
       </label>
 
       <div style={{ marginTop: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 4 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 6 }}>
           Height filter: {heightRange[0]}–{heightRange[1]} m
         </div>
+        <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 2 }}>Min: {heightRange[0]} m</div>
         <input
           type="range"
           min={0}
-          max={300}
+          max={heightRange[1]}
           step={5}
           value={heightRange[0]}
           onChange={(e) => setHeightRange([Number(e.target.value), heightRange[1]])}
-          style={{ width: '100%', marginBottom: 2 }}
+          style={{ width: '100%', marginBottom: 6, accentColor: '#3b82f6' }}
         />
+        <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 2 }}>Max: {heightRange[1]} m</div>
         <input
           type="range"
-          min={0}
+          min={heightRange[0]}
           max={300}
           step={5}
           value={heightRange[1]}
           onChange={(e) => setHeightRange([heightRange[0], Number(e.target.value)])}
-          style={{ width: '100%' }}
+          style={{ width: '100%', accentColor: '#ef4444' }}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.6 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.6, marginTop: 4 }}>
           <span>0 m</span><span>300 m</span>
         </div>
       </div>
 
       {metadata && (
         <div style={{ marginTop: 12, fontSize: 11, opacity: 0.8, lineHeight: 1.6 }}>
-          <div>🏢 {metadata.building_count.toLocaleString()} buildings</div>
-          <div>🛣️ {metadata.road_count.toLocaleString()} roads</div>
-          <div>📏 {metadata.pct_known_height.toFixed(0)}% known heights</div>
+          <div>Buildings: {metadata.stats.buildings_count.toLocaleString()}</div>
+          <div>Roads: {metadata.stats.roads_count.toLocaleString()}</div>
+          <div>Known heights: {metadata.stats.pct_known_height.toFixed(0)}%</div>
           <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>
             Generated: {new Date(metadata.generated_at).toLocaleDateString()}
           </div>
@@ -89,7 +91,7 @@ export default function Controls() {
           <div style={{ fontWeight: 600, marginBottom: 6, fontSize: 12 }}>📍 Selected Building</div>
           <div style={{ fontSize: 11, lineHeight: 1.7 }}>
             {bp.name && <div>🏷️ {bp.name}</div>}
-            <div>📐 {bp.height.toFixed(1)} m tall</div>
+            <div>📐 {bp.height != null ? `${bp.height.toFixed(1)} m tall` : 'Height unknown'}</div>
             <div>
               {bp.height_source === 'osm' && '✅ OSM height'}
               {bp.height_source === 'levels' && '📊 From floor count'}
