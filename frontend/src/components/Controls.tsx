@@ -16,6 +16,8 @@ export default function Controls() {
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
   const colourMode = useMapStore((s) => s.colourMode);
   const setColourMode = useMapStore((s) => s.setColourMode);
+  const showPerfOverlay = useMapStore((s) => s.showPerfOverlay);
+  const togglePerfOverlay = useMapStore((s) => s.togglePerfOverlay);
   const { data: metadata } = useMetadata();
 
   const bp = selectedBuilding?.properties as BuildingProperties | undefined;
@@ -44,6 +46,11 @@ export default function Controls() {
       <label style={labelStyle}>
         <input type="checkbox" checked={showLandmarks} onChange={toggleLandmarks} />
         Landmarks
+      </label>
+
+      <label style={labelStyle}>
+        <input type="checkbox" checked={showPerfOverlay} onChange={togglePerfOverlay} />
+        Stats overlay
       </label>
 
       <div style={sectionStyle}>

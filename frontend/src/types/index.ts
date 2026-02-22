@@ -99,6 +99,10 @@ export interface MapStoreState {
   colourMode: 'height' | 'type';
   setColourMode: (mode: 'height' | 'type') => void;
 
+  /** Show the in-app FPS / frame-time performance overlay */
+  showPerfOverlay: boolean;
+  togglePerfOverlay: () => void;
+
   selectedBuilding: GeoJsonFeature<BuildingProperties> | null;
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) => void;
 

@@ -3,6 +3,7 @@ import Map3D from './components/Map3D';
 import Controls from './components/Controls';
 import HeightLegend from './components/HeightLegend';
 import TypeLegend from './components/TypeLegend';
+import PerfOverlay from './components/PerfOverlay';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +21,7 @@ export default function App() {
         <Controls />
         <HeightLegend />
         <TypeLegend />
+        <PerfOverlay />
       </div>
     </QueryClientProvider>
   );
