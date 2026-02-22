@@ -6,6 +6,7 @@ with coordinate precision control.
 """
 
 import json
+import math
 from pathlib import Path
 
 import geopandas as gpd
@@ -57,12 +58,38 @@ def export_geojson(
 
     # For roads: lift bridge/elevated segments by baking Z into coordinates.
     # OSM `layer` tag = vertical level relative to ground; 1 level ≈ 6 m.
-    # After baking, strip bridge/layer from properties (they're now in geometry).
+    # A cosine taper is applied so Z ramps from 0 at each endpoint up to the
+    # full deck height at the midpoint — this makes bridge segments connect
+    # smoothly to the flat ground roads on either side.
+    # After baking, strip bridge/layer from exported properties.
     if layer_name == "roads":
-        def _add_z(coords, z: float):
-            if isinstance(coords[0], (list, tuple)):
-                return [_add_z(c, z) for c in coords]
-            return [coords[0], coords[1], z]  # replace or add Z
+        def _taper_coords(coords: list, z_max: float) -> list:
+            """Set Z using a cosine taper (0 → z_max → 0).
+
+            Most OSM bridge edges are 2-node LineStrings after graph
+            simplification, so we first ensure at least 5 evenly-spaced
+            points by linear interpolation before applying the taper.
+            """
+            # Ensure minimum point density so the taper is visible
+            MIN_PTS = 5
+            if len(coords) < MIN_PTS:
+                interp = []
+                for j in range(MIN_PTS):
+                    t = j / (MIN_PTS - 1)
+                    # lerp between first and last coord (handles 2-pt case)
+                    lon = coords[0][0] + t * (coords[-1][0] - coords[0][0])
+                    lat = coords[0][1] + t * (coords[-1][1] - coords[0][1])
+                    interp.append([lon, lat])
+                coords = interp
+
+            n = len(coords)
+            result = []
+            for i, pt in enumerate(coords):
+                t = i / (n - 1) if n > 1 else 0.5
+                # cosine taper: 0 at endpoints, z_max at midpoint (t=0.5)
+                z = z_max * 0.5 * (1 - math.cos(math.pi * 2 * min(t, 1 - t)))
+                result.append([pt[0], pt[1], z])
+            return result
 
         for feature in geojson_data["features"]:
             props = feature["properties"]
@@ -75,9 +102,9 @@ def export_geojson(
             if bridge and str(bridge).lower() not in ("", "no") and layer_val == 0:
                 layer_val = 1
             if layer_val > 0:
-                z_m = layer_val * 6.0  # 6 m per OSM layer level
-                feature["geometry"]["coordinates"] = _add_z(
-                    feature["geometry"]["coordinates"], z_m
+                z_max = layer_val * 6.0  # 6 m per OSM layer level
+                feature["geometry"]["coordinates"] = _taper_coords(
+                    feature["geometry"]["coordinates"], z_max
                 )
             # Remove baked / internal attributes from exported properties
             props.pop("bridge", None)
