@@ -16,6 +16,7 @@ def generate_metadata(
     buildings_gdf: gpd.GeoDataFrame,
     roads_gdf: gpd.GeoDataFrame,
     output_path: Path,
+    pois_gdf: gpd.GeoDataFrame | None = None,
 ) -> Path:
     """
     Generate metadata JSON for frontend consumption.
@@ -27,6 +28,7 @@ def generate_metadata(
         buildings_gdf: Processed buildings GeoDataFrame (must have height, height_source)
         roads_gdf: Processed roads GeoDataFrame
         output_path: Destination file path
+        pois_gdf: Optional POI GeoDataFrame
 
     Returns:
         Path to the written file
@@ -52,6 +54,7 @@ def generate_metadata(
         "stats": {
             "buildings_count": len(buildings_gdf),
             "roads_count": len(roads_gdf),
+            "pois_count": len(pois_gdf) if pois_gdf is not None else 0,
             "avg_building_height": round(float(buildings_gdf["height"].mean()), 1),
             "max_building_height": round(float(buildings_gdf["height"].max()), 1),
             "height_sources": source_counts,
@@ -67,6 +70,7 @@ def generate_metadata(
         "files": {
             "buildings": "buildings.geojson",
             "roads": "roads.geojson",
+            "pois": "pois.geojson",
         },
     }
 

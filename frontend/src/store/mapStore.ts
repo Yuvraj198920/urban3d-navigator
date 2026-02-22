@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { MapStoreState, ViewState, GeoJsonFeature, BuildingProperties, HoverInfo } from '../types';
+import type { MapStoreState, ViewState, GeoJsonFeature, BuildingProperties, PoiProperties, HoverInfo } from '../types';
 import { INITIAL_VIEW_STATE } from '../utils/constants';
 
 export const useMapStore = create<MapStoreState>((set) => ({
@@ -37,6 +37,12 @@ export const useMapStore = create<MapStoreState>((set) => ({
   selectedBuilding: null,
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) =>
     set({ selectedBuilding: b }),
+
+  showPois: true,
+  togglePois: () => set((s) => ({ showPois: !s.showPois })),
+
+  selectedPoi: null,
+  setSelectedPoi: (p: GeoJsonFeature<PoiProperties> | null) => set({ selectedPoi: p }),
 
   hoverInfo: null,
   setHoverInfo: (info: HoverInfo | null) => set({ hoverInfo: info }),

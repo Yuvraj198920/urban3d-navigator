@@ -5,6 +5,7 @@ import HeightLegend from './components/HeightLegend';
 import TypeLegend from './components/TypeLegend';
 import PerfOverlay from './components/PerfOverlay';
 import Attribution from './components/Attribution';
+import PoiPanel from './components/PoiPanel';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ export default function App() {
         <HeightLegend />
         <TypeLegend />
         <PerfOverlay />
+        <PoiPanel />
         <Attribution />
       </div>
     </QueryClientProvider>
