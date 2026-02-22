@@ -19,12 +19,13 @@ export const BOLZANO_LANDMARKS: Landmark[] = [
   { name: 'Gries', coordinates: [11.3378, 46.4963], category: 'culture' },
 ];
 
-/** Emoji icon per category shown before the label name. */
-const CATEGORY_ICON: Record<Landmark['category'], string> = {
-  culture: '🏛',
-  transport: '🚉',
-  nature: '🌿',
-  market: '🛒',
+/** Short ASCII prefix per category (deck.gl TextLayer uses a WebGL font atlas
+ *  that cannot render emoji — use plain text tags instead). */
+const CATEGORY_TAG: Record<Landmark['category'], string> = {
+  culture: '[*]',
+  transport: '[T]',
+  nature: '[~]',
+  market: '[M]',
 };
 
 /**
@@ -36,7 +37,7 @@ export function createLandmarkLayer(data: Landmark[] = BOLZANO_LANDMARKS) {
     id: 'landmarks',
     data,
     getPosition: (d) => d.coordinates,
-    getText: (d) => `${CATEGORY_ICON[d.category]} ${d.name}`,
+    getText: (d) => `${CATEGORY_TAG[d.category]} ${d.name}`,
     getSize: 13,
     getColor: [20, 20, 20, 240],
     getBackgroundColor: [255, 255, 255, 210],

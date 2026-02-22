@@ -3,7 +3,7 @@ import DeckGL from '@deck.gl/react';
 import { FlyToInterpolator } from 'deck.gl';
 import type { PickingInfo } from 'deck.gl';
 import { Map } from 'react-map-gl/maplibre';
-import type { MapLibreEvent } from 'maplibre-gl';
+import type { Map as MaplibreMap, MapLibreEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { useBuildingsData, useRoadsData } from '../hooks/useMapData';
@@ -17,8 +17,6 @@ import type { HoverInfo } from '../types';
 import Tooltip from './Tooltip';
 
 export default function Map3D() {
-  // flyTarget drives camera transitions — updating it with a FlyToInterpolator
-  // triggers deck.gl to animate from the current internal viewport to the target.
   const [flyTarget, setFlyTarget] = useState<object>({ ...INITIAL_VIEW_STATE });
 
   const { data: buildings, isLoading: loadingBuildings } = useBuildingsData();
@@ -78,9 +76,24 @@ export default function Map3D() {
   );
 
   /**
-   * On map load, inject the AWS raster-DEM source and enable MapLibre terrain.
-   * Bolzano sits in an Alpine valley — terrain exaggeration makes this
-   * immediately readable as a real place, not a flat grid.
+   * Hide the basemap's own building layers so deck.gl's height-coloured
+   * buildings are the sole 3-D representation. Called on load and on
+   * every styledata event to survive style reloads.
+   */
+  const hideBasemapBuildings = useCallback((map: MaplibreMap) => {
+    for (const layerId of ['building', 'building-3d']) {
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(layerId, 'visibility', 'none');
+      }
+    }
+  }, []);
+
+  /**
+   * On map load, inject the AWS raster-DEM source, enable MapLibre terrain,
+   * and hide the basemap's own building layers so deck.gl's height-coloured
+   * buildings are the sole 3-D representation.
+   * The liberty style's building layers are defined in the style JSON itself,
+   * so they are always present at load time — no need to re-hide on styledata.
    */
   const handleMapLoad = useCallback((evt: MapLibreEvent) => {
     const map = evt.target;
@@ -94,7 +107,8 @@ export default function Map3D() {
       });
     }
     map.setTerrain({ source: 'terrain-dem', exaggeration: 1.2 });
-  }, []);
+    hideBasemapBuildings(map);
+  }, [hideBasemapBuildings]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

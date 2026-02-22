@@ -40,9 +40,11 @@ function filterByHeight(
   if (minH === 0 && maxH === 300) return data; // fast-path: no filter
   return {
     ...data,
-    features: data.features.filter(
-      (f) => f.properties.height >= minH && f.properties.height <= maxH,
-    ),
+    features: data.features.filter((f) => {
+      const h = f.properties.height;
+      if (h == null || isNaN(h)) return false; // skip null/NaN heights
+      return h >= minH && h <= maxH;
+    }),
   };
 }
 
