@@ -38,7 +38,8 @@ def export_geojson(
     if layer_name == "buildings":
         keep_cols = ["geometry", "height", "height_source", "building_type", "name"]
     elif layer_name == "roads":
-        keep_cols = ["geometry", "highway", "road_class", "name", "line_width"]
+        # bridge + layer are used to bake Z elevation; stripped from props after
+        keep_cols = ["geometry", "highway", "road_class", "name", "line_width", "bridge", "layer"]
     else:
         raise ValueError(f"Unknown layer_name: {layer_name}")
 
@@ -53,6 +54,34 @@ def export_geojson(
     # Serialize
     geojson_str = gdf_export.to_json(drop_id=True)
     geojson_data = json.loads(geojson_str)
+
+    # For roads: lift bridge/elevated segments by baking Z into coordinates.
+    # OSM `layer` tag = vertical level relative to ground; 1 level ≈ 6 m.
+    # After baking, strip bridge/layer from properties (they're now in geometry).
+    if layer_name == "roads":
+        def _add_z(coords, z: float):
+            if isinstance(coords[0], (list, tuple)):
+                return [_add_z(c, z) for c in coords]
+            return [coords[0], coords[1], z]  # replace or add Z
+
+        for feature in geojson_data["features"]:
+            props = feature["properties"]
+            bridge = props.get("bridge")
+            try:
+                layer_val = int(props.get("layer") or 0)
+            except (ValueError, TypeError):
+                layer_val = 0
+            # bridge=yes with no layer tag implies layer 1
+            if bridge and str(bridge).lower() not in ("", "no") and layer_val == 0:
+                layer_val = 1
+            if layer_val > 0:
+                z_m = layer_val * 6.0  # 6 m per OSM layer level
+                feature["geometry"]["coordinates"] = _add_z(
+                    feature["geometry"]["coordinates"], z_m
+                )
+            # Remove baked / internal attributes from exported properties
+            props.pop("bridge", None)
+            props.pop("layer", None)
 
     # Round coordinates
     precision = GEOJSON_COORD_PRECISION

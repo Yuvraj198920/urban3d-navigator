@@ -45,7 +45,8 @@ def fetch_road_network(
     gdf_edges = ox.graph_to_gdfs(G, nodes=False, edges=True)
 
     # Keep relevant columns (handle missing gracefully)
-    keep = ["geometry", "highway", "name"]
+    # bridge / layer are required to bake vertical elevation into the export
+    keep = ["geometry", "highway", "name", "bridge", "layer"]
     for col in keep:
         if col not in gdf_edges.columns:
             gdf_edges[col] = None
