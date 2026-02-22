@@ -26,6 +26,16 @@ export interface BuildingProperties {
   fill_color?: [number, number, number, number];
 }
 
+// ─── POI Properties ──────────────────────────────────────────────────
+export interface PoiProperties {
+  /** Display name (empty string when unknown) */
+  name: string;
+  /** Broad display category: food | healthcare | education | finance | accommodation | culture | shopping | other */
+  category: string;
+  /** Raw OSM tag value, e.g. "restaurant" */
+  amenity_tag: string;
+}
+
 // ─── Road Properties ─────────────────────────────────────────────────
 export interface RoadProperties {
   /** Road name */
@@ -105,6 +115,14 @@ export interface MapStoreState {
 
   selectedBuilding: GeoJsonFeature<BuildingProperties> | null;
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) => void;
+
+  /** POI layer toggle */
+  showPois: boolean;
+  togglePois: () => void;
+
+  /** Clicked POI for the detail panel */
+  selectedPoi: GeoJsonFeature<PoiProperties> | null;
+  setSelectedPoi: (p: GeoJsonFeature<PoiProperties> | null) => void;
 
   hoverInfo: HoverInfo | null;
   setHoverInfo: (info: HoverInfo | null) => void;

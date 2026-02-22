@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { GeoJsonFeatureCollection, BuildingProperties, RoadProperties, PipelineMetadata } from '../types';
-import { BUILDINGS_URL, ROADS_URL, METADATA_URL } from '../utils/constants';
+import type { GeoJsonFeatureCollection, BuildingProperties, RoadProperties, PoiProperties, PipelineMetadata } from '../types';
+import { BUILDINGS_URL, ROADS_URL, POIS_URL, METADATA_URL } from '../utils/constants';
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
@@ -23,6 +23,16 @@ export function useRoadsData() {
   return useQuery<GeoJsonFeatureCollection<RoadProperties>>({
     queryKey: ['roads'],
     queryFn: () => fetchJson(ROADS_URL),
+    staleTime: Infinity,
+    retry: 2,
+  });
+}
+
+/** Fetch POIs GeoJSON */
+export function usePoisData() {
+  return useQuery<GeoJsonFeatureCollection<PoiProperties>>({
+    queryKey: ['pois'],
+    queryFn: () => fetchJson(POIS_URL),
     staleTime: Infinity,
     retry: 2,
   });

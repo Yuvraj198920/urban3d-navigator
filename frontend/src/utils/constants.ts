@@ -30,7 +30,33 @@ export const AWS_TERRAIN_TILES_URL = 'https://s3.amazonaws.com/elevation-tiles-p
 // ─── Data Endpoints ──────────────────────────────────────────────────
 export const BUILDINGS_URL = `${DATA_BASE_URL}/buildings.geojson`;
 export const ROADS_URL = `${DATA_BASE_URL}/roads.geojson`;
+export const POIS_URL = `${DATA_BASE_URL}/pois.geojson`;
 export const METADATA_URL = `${DATA_BASE_URL}/metadata.json`;
+
+// ─── POI Category Colours ──────────────────────────────────────────────────────────
+/** RGBA colour per POI category, matching the ETL classification. */
+export const POI_CATEGORY_COLORS: Record<string, [number, number, number, number]> = {
+  food:          [255, 140,   0, 230],  // amber
+  healthcare:    [220,  50,  50, 230],  // red
+  education:     [ 70, 130, 180, 230],  // steel blue
+  finance:       [ 46, 139,  87, 230],  // sea green
+  accommodation: [148, 103, 189, 230],  // purple
+  culture:       [186,  85, 211, 230],  // medium orchid
+  shopping:      [ 31, 119, 180, 230],  // blue
+  other:         [140, 140, 140, 230],  // grey
+};
+
+/** Emoji label shown in the POI detail panel per category. */
+export const POI_CATEGORY_EMOJI: Record<string, string> = {
+  food:          '🍴',
+  healthcare:    '🏥',
+  education:     '🏫',
+  finance:       '🏦',
+  accommodation: '🏨',
+  culture:       '🎭',
+  shopping:      '🛍️',
+  other:         '📍',
+};
 
 // ─── Height → Color Scale ────────────────────────────────────────────
 /** Low buildings → cool blue, mid → green/yellow, tall → red */

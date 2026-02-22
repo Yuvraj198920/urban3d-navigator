@@ -41,6 +41,8 @@ def export_geojson(
     elif layer_name == "roads":
         # bridge + layer are used to bake Z elevation; stripped from props after
         keep_cols = ["geometry", "highway", "road_class", "name", "line_width", "bridge", "layer"]
+    elif layer_name == "pois":
+        keep_cols = ["geometry", "name", "category", "amenity_tag"]
     else:
         raise ValueError(f"Unknown layer_name: {layer_name}")
 

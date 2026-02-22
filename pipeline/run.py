@@ -24,6 +24,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 from pipeline.config import BBOX, CITY, OUTPUT_DIR, USE_OVERTURE
 from pipeline.stages.fetch_buildings import fetch_osm_buildings
+from pipeline.stages.fetch_pois import fetch_pois
 from pipeline.stages.fetch_overture import fetch_overture_buildings, merge_osm_overture
 from pipeline.stages.process_heights import process_heights
 from pipeline.stages.fetch_roads import fetch_road_network
@@ -87,17 +88,23 @@ def run_pipeline(
     buildings = clean_geometries(buildings)
     roads = clean_geometries(roads)
 
-    # ── Stage 7: Export ──────────────────────────────────
+    # ── Stage 6b: Fetch POIs ─────────────────────────────────────────
+    print("\n[5b/7] Fetching POIs...")
+    pois = fetch_pois(bbox)
+    print(f"  Fetched {len(pois)} POIs")
+
+    # ── Stage 7: Export ──────────────────────────────────────────────
     print("\n[6/7] Exporting GeoJSON files...")
     city_slug = city.lower().replace(" ", "_").replace(",", "")
     city_dir = output_dir / city_slug
 
     export_geojson(buildings, city_dir / "buildings.geojson", "buildings")
     export_geojson(roads, city_dir / "roads.geojson", "roads")
+    export_geojson(pois, city_dir / "pois.geojson", "pois")
 
-    # ── Stage 8: Metadata ────────────────────────────────
+    # ── Stage 8: Metadata ────────────────────────────────────────────
     print("\n[7/7] Generating metadata...")
-    generate_metadata(city, buildings, roads, city_dir / "metadata.json")
+    generate_metadata(city, buildings, roads, city_dir / "metadata.json", pois_gdf=pois)
 
     print(f"\n{'=' * 60}")
     print(f"✅ Pipeline complete! Output: {city_dir}")

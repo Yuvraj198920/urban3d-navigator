@@ -12,6 +12,8 @@ export default function Controls() {
   const toggleWireframe = useMapStore((s) => s.toggleWireframe);
   const showLandmarks = useMapStore((s) => s.showLandmarks);
   const toggleLandmarks = useMapStore((s) => s.toggleLandmarks);
+  const showPois = useMapStore((s) => s.showPois);
+  const togglePois = useMapStore((s) => s.togglePois);
   const selectedBuilding = useMapStore((s) => s.selectedBuilding);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
   const colourMode = useMapStore((s) => s.colourMode);
@@ -49,6 +51,11 @@ export default function Controls() {
       </label>
 
       <label style={labelStyle}>
+        <input type="checkbox" checked={showPois} onChange={togglePois} />
+        POIs
+      </label>
+
+      <label style={labelStyle}>
         <input type="checkbox" checked={showPerfOverlay} onChange={togglePerfOverlay} />
         Stats overlay
       </label>
@@ -79,6 +86,9 @@ export default function Controls() {
         <div style={{ marginTop: 12, fontSize: 11, opacity: 0.8, lineHeight: 1.6 }}>
           <div>Buildings: {metadata.stats.buildings_count.toLocaleString()}</div>
           <div>Roads: {metadata.stats.roads_count.toLocaleString()}</div>
+          {'pois_count' in metadata.stats && (
+            <div>POIs: {(metadata.stats as Record<string, number>).pois_count.toLocaleString()}</div>
+          )}
           <div>Known heights: {metadata.stats.pct_known_height.toFixed(0)}%</div>
           <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>
             Generated: {new Date(metadata.generated_at).toLocaleDateString()}

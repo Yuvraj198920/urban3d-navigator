@@ -6,11 +6,12 @@ import { Map } from 'react-map-gl/maplibre';
 import type { Map as MaplibreMap, MapLibreEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { useBuildingsData, useRoadsData } from '../hooks/useMapData';
+import { useBuildingsData, useRoadsData, usePoisData } from '../hooks/useMapData';
 import { useMapStore } from '../store/mapStore';
 import { createBuildingSolidLayer, createBuildingWireframeLayer } from '../layers/buildingLayer';
 import { createRoadLayer } from '../layers/roadLayer';
 import { createLandmarkLayer } from '../layers/landmarkLayer';
+import { createPoiLayer } from '../layers/poiLayer';
 import { AWS_TERRAIN_TILES_URL, BASEMAP_STYLE_URL, INITIAL_VIEW_STATE } from '../utils/constants';
 import type { HoverInfo } from '../types';
 
@@ -21,16 +22,19 @@ export default function Map3D() {
 
   const { data: buildings, isLoading: loadingBuildings } = useBuildingsData();
   const { data: roads, isLoading: loadingRoads } = useRoadsData();
+  const { data: pois } = usePoisData();
 
   const showBuildings = useMapStore((s) => s.showBuildings);
   const showRoads = useMapStore((s) => s.showRoads);
   const showWireframe = useMapStore((s) => s.showWireframe);
   const showLandmarks = useMapStore((s) => s.showLandmarks);
+  const showPois = useMapStore((s) => s.showPois);
   const heightRange = useMapStore((s) => s.heightRange);
   const colourMode = useMapStore((s) => s.colourMode);
   const setHoverInfo = useMapStore((s) => s.setHoverInfo);
   const hoverInfo = useMapStore((s) => s.hoverInfo);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
+  const setSelectedPoi = useMapStore((s) => s.setSelectedPoi);
 
   const layers = useMemo(() => {
     const result = [];
@@ -46,23 +50,36 @@ export default function Map3D() {
       const road = createRoadLayer(roads ?? null);
       if (road) result.push(road);
     }
+    if (showPois) {
+      const poi = createPoiLayer(pois ?? null);
+      if (poi) result.push(poi);
+    }
     if (showLandmarks) {
       result.push(createLandmarkLayer());
     }
     return result;
-  }, [buildings, roads, showBuildings, showRoads, showWireframe, showLandmarks, heightRange, colourMode]);
+  }, [buildings, roads, pois, showBuildings, showRoads, showWireframe, showLandmarks, showPois, heightRange, colourMode]);
 
   const isLoading = loadingBuildings || loadingRoads;
 
-  /** Fly to a clicked building and mark it selected. Clicking empty space clears. */
+  /** Fly to a clicked building and mark it selected. POI clicks open the detail panel. Clicking empty space clears selections. */
   const handleClick = useCallback(
     (info: PickingInfo) => {
       if (!info.object || !info.coordinate) {
         setSelectedBuilding(null);
+        setSelectedPoi(null);
         return;
       }
+      // POI click
+      if (info.layer && info.layer.id === 'pois') {
+        setSelectedPoi(info.object);
+        setSelectedBuilding(null);
+        return;
+      }
+      // Building click — fly to it
       const [longitude, latitude] = info.coordinate as [number, number];
       setSelectedBuilding(info.object);
+      setSelectedPoi(null);
       setFlyTarget({
         longitude,
         latitude,
@@ -73,7 +90,7 @@ export default function Map3D() {
         transitionDuration: 'auto',
       });
     },
-    [setSelectedBuilding],
+    [setSelectedBuilding, setSelectedPoi],
   );
 
   /**
