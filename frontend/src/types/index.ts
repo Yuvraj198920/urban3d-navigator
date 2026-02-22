@@ -85,6 +85,10 @@ export interface MapStoreState {
   showLandmarks: boolean;
   toggleLandmarks: () => void;
 
+  /** [minHeight, maxHeight] filter applied to building layers (metres) */
+  heightRange: [number, number];
+  setHeightRange: (range: [number, number]) => void;
+
   selectedBuilding: GeoJsonFeature<BuildingProperties> | null;
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) => void;
 

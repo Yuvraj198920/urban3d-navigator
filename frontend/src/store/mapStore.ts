@@ -21,6 +21,10 @@ export const useMapStore = create<MapStoreState>((set) => ({
   showLandmarks: true,
   toggleLandmarks: () => set((s) => ({ showLandmarks: !s.showLandmarks })),
 
+  // ── Height range filter ──────────────────────────────────────────────
+  heightRange: [0, 300],
+  setHeightRange: (range: [number, number]) => set({ heightRange: range }),
+
   // ── Selection / hover ───────────────────────────────────────────────
   selectedBuilding: null,
   setSelectedBuilding: (b: GeoJsonFeature<BuildingProperties> | null) =>

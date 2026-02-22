@@ -12,6 +12,8 @@ export default function Controls() {
   const toggleWireframe = useMapStore((s) => s.toggleWireframe);
   const showLandmarks = useMapStore((s) => s.showLandmarks);
   const toggleLandmarks = useMapStore((s) => s.toggleLandmarks);
+  const heightRange = useMapStore((s) => s.heightRange);
+  const setHeightRange = useMapStore((s) => s.setHeightRange);
   const selectedBuilding = useMapStore((s) => s.selectedBuilding);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
   const { data: metadata } = useMetadata();
@@ -43,6 +45,33 @@ export default function Controls() {
         <input type="checkbox" checked={showLandmarks} onChange={toggleLandmarks} />
         Landmarks
       </label>
+
+      <div style={{ marginTop: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 4 }}>
+          Height filter: {heightRange[0]}–{heightRange[1]} m
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={300}
+          step={5}
+          value={heightRange[0]}
+          onChange={(e) => setHeightRange([Number(e.target.value), heightRange[1]])}
+          style={{ width: '100%', marginBottom: 2 }}
+        />
+        <input
+          type="range"
+          min={0}
+          max={300}
+          step={5}
+          value={heightRange[1]}
+          onChange={(e) => setHeightRange([heightRange[0], Number(e.target.value)])}
+          style={{ width: '100%' }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.6 }}>
+          <span>0 m</span><span>300 m</span>
+        </div>
+      </div>
 
       {metadata && (
         <div style={{ marginTop: 12, fontSize: 11, opacity: 0.8, lineHeight: 1.6 }}>
