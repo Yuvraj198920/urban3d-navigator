@@ -12,8 +12,6 @@ export default function Controls() {
   const toggleWireframe = useMapStore((s) => s.toggleWireframe);
   const showLandmarks = useMapStore((s) => s.showLandmarks);
   const toggleLandmarks = useMapStore((s) => s.toggleLandmarks);
-  const heightRange = useMapStore((s) => s.heightRange);
-  const setHeightRange = useMapStore((s) => s.setHeightRange);
   const selectedBuilding = useMapStore((s) => s.selectedBuilding);
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
   const { data: metadata } = useMetadata();
@@ -45,35 +43,6 @@ export default function Controls() {
         <input type="checkbox" checked={showLandmarks} onChange={toggleLandmarks} />
         Landmarks
       </label>
-
-      <div style={{ marginTop: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 6 }}>
-          Height filter: {heightRange[0]}–{heightRange[1]} m
-        </div>
-        <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 2 }}>Min: {heightRange[0]} m</div>
-        <input
-          type="range"
-          min={0}
-          max={heightRange[1]}
-          step={5}
-          value={heightRange[0]}
-          onChange={(e) => setHeightRange([Number(e.target.value), heightRange[1]])}
-          style={{ width: '100%', marginBottom: 6, accentColor: '#3b82f6' }}
-        />
-        <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 2 }}>Max: {heightRange[1]} m</div>
-        <input
-          type="range"
-          min={heightRange[0]}
-          max={300}
-          step={5}
-          value={heightRange[1]}
-          onChange={(e) => setHeightRange([heightRange[0], Number(e.target.value)])}
-          style={{ width: '100%', accentColor: '#ef4444' }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.6, marginTop: 4 }}>
-          <span>0 m</span><span>300 m</span>
-        </div>
-      </div>
 
       {metadata && (
         <div style={{ marginTop: 12, fontSize: 11, opacity: 0.8, lineHeight: 1.6 }}>

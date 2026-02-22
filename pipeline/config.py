@@ -12,8 +12,11 @@ OUTPUT_DIR = Path(__file__).parent / "data" / "processed"
 
 # ── Area of Interest ────────────────────────────────────
 CITY = "Bolzano, Italy"
-# Bolzano old town bounding box (north, south, east, west)
-BBOX = (46.503, 46.495, 11.358, 11.345)
+# Expanded city-wide bounding box (north, south, east, west)
+# Covers: Gries, Centro Storico, Don Bosco, Europa-Novacella, Station area
+# ~5.5 km × 5 km — well within OSM_MAX_QUERY_AREA (50 km²)
+# Old town only was: (46.503, 46.495, 11.358, 11.345)
+BBOX = (46.515, 46.465, 11.385, 11.315)
 
 # ── Overture Maps ───────────────────────────────────────
 USE_OVERTURE = False  # Enable for cities with sparse OSM heights (e.g. Milan)
